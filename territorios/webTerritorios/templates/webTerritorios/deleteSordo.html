@@ -1,0 +1,12 @@
+{% extends "webTerritorios/layout.html" %}
+
+{% block body %}
+    <h1>Borrar Sordo</h1>
+    <form action="" method="POST">
+        {% csrf_token %}
+        <p>Seguro quieres borrar a '<b>{{ sordo.name | upper}}</b>'?</p>
+        <!-- Submit button -->
+        <button type="submit" class="btn btn-danger btn-block mb-4">Confirmar</button>
+    </form>
+    <a href="{% url 'webTerritorios:index' %}">Ver Sordos</a>
+{%endblock%}
