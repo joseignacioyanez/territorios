@@ -14,14 +14,14 @@ class NewSordoForm(forms.ModelForm):
 
         model = Sordo
         fields = ["name", "direccion", "edad"]
-        name = forms.CharField(label="Nombre", widget=forms.TextInput(attrs={"class": "form-control"}))
-        direccion = forms.CharField(label="Direccion", widget=forms.TextInput(attrs={"class": "form-control"}))
-        edad = forms.IntegerField(label="Edad", min_value=0, max_value=80, widget=forms.NumberInput(attrs={"class": "form-control"}))
+        name = forms.CharField(label="Nombre")
+        direccion = forms.CharField(label="Direccion")
+        edad = forms.IntegerField(label="Edad")
         
         widgets = {
             "name": forms.TextInput(attrs={"class": "form-control"}),
             "direccion": forms.TextInput(attrs={"class": "form-control"}),
-            "edad": forms.NumberInput(attrs={"class": "form-control"})
+            "edad": forms.NumberInput(attrs={"class": "form-control", "min": 0, "max": 80})
         }
 
         def as_div(self):
