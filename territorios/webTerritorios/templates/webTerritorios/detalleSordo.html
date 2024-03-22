@@ -1,0 +1,43 @@
+{% extends "webTerritorios/layout.html" %}
+
+{% block dependencias %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&callback=initMap" async defer></script>
+    <style>
+        #map { height: 400px; }
+    </style>
+{% endblock %}
+
+{% block body %}
+
+    <h1>Detalle de Sordo {{ sordo.codigo }}</h1>
+
+    <ul>
+        <li>Nombre: {{ sordo.nombre }}</li>
+        <li>Territorio: {{ sordo.territorio.numero }} {{ sordo.territorio.nombre }}</li>
+        <li>Estado: {{ sordo.estado_sordo }}</li>
+        <li>Género: {{ sordo.genero_id }}</li>
+        <li>Tipo de Señas: {{ sordo.senias_tipo }}</li>
+        <li>Año de Nacimiento: {{ sordo.anio_nacimiento }}</li>
+        <li>Estudia con: {{ sordo.publicador_estudio }}</li>
+        <li>Dirección: {{ sordo.direccion }}</li>
+        <li>Descripción: {{ sordo.descripcion }}</li>
+        <div id="map"></div>
+    </ul>
+
+    <script>
+        function initMap() {
+            var map = new google.maps.Map(document.getElementById('map'), {
+                center: {lat: {{ sordo.gps_latitud }}, lng: {{ sordo.gps_longitud }}},
+                zoom: 14
+            });
+
+            var marker = new google.maps.Marker({
+                position: {lat: {{ sordo.gps_latitud }}, lng: {{ sordo.gps_longitud }}},
+                map: map,
+                title: 'Your GPS Location'
+            });
+        }
+    </script>
+{% endblock %}

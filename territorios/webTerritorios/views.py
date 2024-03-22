@@ -4,19 +4,18 @@ from django import forms
 from django.urls import reverse
 from django.utils.safestring import SafeString
 from .models import Sordo
+from django.conf import settings
 
-
-sordos = ["German", "Mely", "Pepe"]
 
 class NewSordoForm(forms.ModelForm):
 
     class Meta:
 
         model = Sordo
-        fields = ["name", "direccion", "edad"]
-        name = forms.CharField(label="Nombre")
+        fields = ["nombre", "direccion", "anio_nacimiento"]
+        nombre = forms.CharField(label="Nombre")
         direccion = forms.CharField(label="Direccion")
-        edad = forms.IntegerField(label="Edad")
+        anio_nacimiento = forms.IntegerField(label="Año de Nacimiento")
         
         widgets = {
             "name": forms.TextInput(attrs={"class": "form-control"}),
@@ -31,6 +30,13 @@ class NewSordoForm(forms.ModelForm):
 def index(request):
     return render(request, "webTerritorios/index.html", {
         "sordos": Sordo.objects.all()
+    })
+
+def sordo(request, congregacion, codigo):
+    sordo = Sordo.objects.get(codigo=codigo, territorio__congregacion__id=congregacion)
+    return render(request, "webTerritorios/detalleSordo.html", {
+        "sordo": sordo,
+        'google_maps_api_key': settings.GOOGLE_MAPS_API_KEY
     })
 
 def addSordo(request):

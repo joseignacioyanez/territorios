@@ -11,7 +11,7 @@
             <tr>
                 <th>Nombre</th>
                 <th>Direccion</th>
-                <th>Edad</th>
+                <th>Año Nacimiento</th>
                 <th>Actualizar</th>
                 <th>Eliminar</th>
             </tr>
@@ -19,9 +19,9 @@
         <tbody>
             {% for sordo in sordos %}
                 <tr>
-                    <td>{{ sordo.name }}</td>
+                    <td>{{ sordo.nombre }}</td>
                     <td>{{ sordo.direccion }}</td>
-                    <td>{{ sordo.edad }}</td>
+                    <td>{{ sordo.anio_nacimiento }}</td>
                     <td><button class="btn btn-secondary"><a href="{% url 'webTerritorios:editSordo' sordo.id %}" style="color:white">Actualizar</a></button></td>
                     <td><button class="btn btn-danger"><a href="{% url 'webTerritorios:deleteSordo' sordo.id %}" style="color:white">Eliminar</a></button></td>
                 </tr>
