@@ -3,7 +3,6 @@ from django.urls import reverse
 from django.contrib.auth.models import User
 
 
-
 class Congregacion(models.Model):
     id = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=60)
@@ -11,6 +10,10 @@ class Congregacion(models.Model):
 
     def __str__(self):
         return f"{self.id} - {self.nombre}"
+    
+    class Meta:
+        verbose_name = 'Congregación'
+        verbose_name_plural = 'Congregaciones'
 
 class Genero(models.Model):
     id = models.AutoField(primary_key=True)
@@ -53,7 +56,7 @@ class Territorio(models.Model):
     activo = models.BooleanField(default=True)
 
     def __str__(self):
-        return f"{self.id} - {self.numero} {self.congregacion.nombre} - {self.nombre}"
+        return f"{self.numero} {self.congregacion.nombre} - {self.nombre}"
     
     class Meta:
         verbose_name = 'Territorio'
@@ -61,9 +64,6 @@ class Territorio(models.Model):
 
 class Publicador(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, blank=True, null=True)
-    nombre = models.CharField(max_length=50)
-    email = models.EmailField(max_length=254, blank=True, null=True)
-    telefono = models.CharField(max_length=10, blank=True, null=True)
     activo = models.BooleanField(default=True)
     telegram_chatid = models.CharField(max_length=15, blank=True, null=True, verbose_name="Telegram Chat ID")
     congregacion = models.ForeignKey(Congregacion, verbose_name="Congregacion", blank=True, null=True, on_delete=models.SET_NULL, related_name="publicadores")
@@ -121,7 +121,7 @@ class Asignacion(models.Model):
     publicador = models.ForeignKey(Publicador, verbose_name="Publicador", blank=True, null=True, on_delete=models.SET_NULL, related_name="asignaciones_de_este_publicador")
     territorio = models.ForeignKey(Territorio, verbose_name="Territorio", blank=True, null=True, on_delete=models.SET_NULL, related_name="asignaciones_de_este_territorio")
     fecha_asignacion = models.DateTimeField(auto_now_add=True) #Se crea la fecha de creacion automaticamente
-    fecha_fin = models.DateTimeField(auto_now=True, blank=True, null=True) 
+    fecha_fin = models.DateTimeField(blank=True, null=True) 
 
     def __str__(self):
         return f"{self.id} - {self.territorio.nombre} - {self.publicador.nombre} - {self.fecha_asignacion}"
