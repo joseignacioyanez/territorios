@@ -16,10 +16,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
-from webTerritorios.views import TerritoriosLoginView
+from webTerritorios.views import TerritoriosLoginView, logoutView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('login/', TerritoriosLoginView.as_view(template_name="registration/login.html"), name="login"),
-    path("webTerritorios/", include("webTerritorios.urls"))
+    path('logout/', logoutView, name='logout'),
+    path("webTerritorios/", include("webTerritorios.urls")),
 ]

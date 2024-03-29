@@ -3,6 +3,6 @@ from django.urls import path
 
 app_name = "webTerritorios"
 urlpatterns = [
-    path("menu", views.menu, name="menu"),
-    path("asignar", views.asignar, name="asignar")
+    path("menu/", views.MenuView.as_view(), name="menu"),
+    path("asignar/", views.AsignarView.as_view(), name="asignar"),
 ]

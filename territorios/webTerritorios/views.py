@@ -1,26 +1,67 @@
-from django.http import HttpResponseRedirect
-from django.shortcuts import render
+
+import datetime
 from django import forms
+from django.shortcuts import redirect, render
 from django.urls import reverse, reverse_lazy
 from django.utils.safestring import SafeString
-from .models import Sordo
-from django.conf import settings
+from django.views import View
+from .models import Sordo, Publicador, Territorio
 from django.contrib.auth.views import LoginView
 from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth import logout
+from django.db.models import Q
 
 
 class TerritoriosLoginView(LoginView):
     redirect_authenticated_user = True
     
     def get_success_url(self):
-        return reverse_lazy('webTerritorios:index') 
+        return reverse_lazy('webTerritorios:menu') 
     
     def form_invalid(self, form):
         messages.error(self.request,'Usuario o Contraseña incorrectos')
         return self.render_to_response(self.get_context_data(form=form))
     
+def logoutView(request):
+    logout(request)
+    return redirect(reverse("login"))
 
+class MenuView(LoginRequiredMixin, View):
+    login_url = reverse_lazy("login")
 
+    def get(self, request):
+        user_groups = request.user.groups.all()  
+        return render(request, "webTerritorios/menu.html", {"user_groups": user_groups})
+
+class AsignarView(LoginRequiredMixin, View):
+    login_url = reverse_lazy("login")
+
+    def get(self, request):
+        congregacion = request.user.publicador.congregacion
+        publicadores = Publicador.objects.filter(congregacion=congregacion, activo=True)
+        territorios = Territorio.objects.filter(
+            Q(congregacion=congregacion) & 
+            (Q(asignaciones_de_este_territorio__fecha_fin__isnull=False) | Q(asignaciones_de_este_territorio__isnull=True))
+        )
+
+        return render(request, "webTerritorios/asignar.html", {
+            "publicadores": publicadores,
+            "territorios": territorios,
+        })
+    
+    def post(self, request):
+        if request.POST.get('enviarTelegram'):
+            print("Enviar Telegram")
+            pass
+        elif request.POST.get('registrarPDFdigital'):
+            print("Registrar PDF Digital")
+            pass
+        elif request.POST.get('registrarPDFimprimir'):
+            print("Registrar PDF Imprimir")
+            pass
+        
+        return redirect(reverse("webTerritorios:asignar"))
 
 class NewSordoForm(forms.ModelForm):
 

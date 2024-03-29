@@ -56,14 +56,15 @@ class Territorio(models.Model):
     activo = models.BooleanField(default=True)
 
     def __str__(self):
-        return f"{self.numero} {self.congregacion.nombre} - {self.nombre}"
+        return f"{self.congregacion.nombre} - {self.numero} - {self.nombre}"
     
     class Meta:
         verbose_name = 'Territorio'
         verbose_name_plural = 'Territorios'
 
 class Publicador(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, blank=True, null=True)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, blank=True, null=True, related_name="publicador")
+    nombre = models.CharField(max_length=60, blank=True, null=True)
     activo = models.BooleanField(default=True)
     telegram_chatid = models.CharField(max_length=15, blank=True, null=True, verbose_name="Telegram Chat ID")
     congregacion = models.ForeignKey(Congregacion, verbose_name="Congregacion", blank=True, null=True, on_delete=models.SET_NULL, related_name="publicadores")
@@ -124,7 +125,7 @@ class Asignacion(models.Model):
     fecha_fin = models.DateTimeField(blank=True, null=True) 
 
     def __str__(self):
-        return f"{self.id} - {self.territorio.nombre} - {self.publicador.nombre} - {self.fecha_asignacion}"
+        return f"{self.id} - {self.territorio.nombre} - {self.publicador.nombre} - {self.fecha_asignacion} - {self.fecha_fin}"
     
     class Meta:
         verbose_name = 'Asignación'

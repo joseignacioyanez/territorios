@@ -2,5 +2,12 @@
 
 {% block body %}
 
+{% for group in user_groups %}
+
+    {% if group.name == 'administradores'  %}
+        <a href="{% url 'webTerritorios:asignar' %}" class="btn btn-primary">Asignar Territorio a Publicador</a> 
+    {% endif %}
+
+{% endfor %}
 
 {% endblock %}
