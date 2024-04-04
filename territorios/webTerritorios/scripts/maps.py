@@ -63,4 +63,9 @@ size=640x640
 '''    
 
 https://t.me/TerritoriosSenias_Bot?text=El%20sordo%20SS-034%20tiene%20un%20error:\n[Por%20favor,%20detalle%20lo%20que%20se%20debe%20corregir,%20puede%20enviar%20la%20ubicacion%20si%20desea]
-https://t.me/TerritoriosSenias_Bot?text=Hola
+https://t.me/TerritoriosSenias_Bot?msg=text=Hola
+https://t.me/share/url?url={url}&text=Hola
+tg://msg?=Hola&to=@TerritoriosSenias_Bot
+
+https://t.me/TerritoriosSenias_Bot?start=report_SS-034
+2
