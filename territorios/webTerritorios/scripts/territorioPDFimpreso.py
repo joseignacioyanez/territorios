@@ -8,8 +8,9 @@ import os
 from dotenv import load_dotenv
 import requests
 from datetime import datetime
+import qrcode
 
-posiciones_texto_digital = [[24,270],[24,219],[24,168],[24,117],[24,66]]
+posiciones_texto_impreso = [[50,317],[50,251],[50,185],[50,119],[50,53]]
 
 def fecha_hoy_formato_espanol():
     current_date = datetime.now()
@@ -47,16 +48,22 @@ def insertar_texto(template_pdf, output_pdf, text1, text2, text3, text4, text5):
     # Texto
 
     # Propiedades de Letra
-    c.setFont("Helvetica", 5)
+    c.setFont("Helvetica", 9)
     c.setFillColor(colors.black)
-    
-    # Insetar textos
-    posiciones = posiciones_texto_digital
+
+    t = c.beginText()
+    t.setTextOrigin(180,587) # Esquina Superior Izquierda
+    text = "Terracota A"
+    t.textLine(text)
+    c.drawText(t)
+
+    # Insertar textos
+    posiciones = posiciones_texto_impreso
     texts = [text1, text2, text3, text4, text5]
     for i in range(5):
         t = c.beginText()
         t.setTextOrigin(posiciones[i][0], posiciones[i][1])
-        text = "\\n".join(wrap(texts[i], 45))
+        text = "\\n".join(wrap(texts[i], 45)) # Max caracteres/Linea
         lines = text.split("\\n")
         for line in lines:
             t.textLine(line)
@@ -74,21 +81,15 @@ def insertar_texto(template_pdf, output_pdf, text1, text2, text3, text4, text5):
     # Cleanup
     #os.remove("overlay.pdf") # Mover a cleanup function
 
-def insertar_mapa_y_botones(output, territory_name ,icon1, icon2, icon_reportar, gps1, gps2, gps3, gps4, gps5, id_sordo_1, id_sordo_2, id_sordo_3, id_sordo_4, id_sordo_5, id_asignacion):
+def insertar_mapa_y_qr(output, territory_name , gps1, gps2, gps3, gps4, gps5, id_sordo_1, id_sordo_2, id_sordo_3, id_sordo_4, id_sordo_5, id_asignacion):
 
     archivo = open_fitz(output)
     primera_pagina = archivo[0]
 
     # Mapa
     #generar_mapa(gps1, gps2, gps3, gps4, gps5)
-    mapa_rectangle = Rect(0,0,184,112)
+    mapa_rectangle = Rect(0, 7,419,270)
     primera_pagina.insert_image(mapa_rectangle, filename="mapa.jpg")
-
-    # Boton Entregar Territorio
-    url_entrega = "https://tm.me/start"
-    boton_entrega_rectangle = Rect(50,368,130,388)
-    primera_pagina.insert_image(boton_entrega_rectangle, filename="recursos/botonTerminar.png")
-    primera_pagina.insert_link({'kind': 2, 'from': boton_entrega_rectangle, 'uri': f'https://www.google.com/maps/search/{id_asignacion}'})
 
     # Botones dependientes del Sordo (GPS y Reportar)
     gps_list = [gps1, gps2, gps3, gps4, gps5]
@@ -97,24 +98,20 @@ def insertar_mapa_y_botones(output, territory_name ,icon1, icon2, icon_reportar,
         # Botones Ubicacion Proporcion (203 x 106)
         diferencial_en_y_entre_sordos = 51 * i
         dif = diferencial_en_y_entre_sordos 
-        googlemaps_rectangle = Rect(140,(117 + dif),178,(137 + dif))
-        osmand_rectangle = Rect(140,(139 + dif),178,(159 + dif))
+        googlemaps_rectangle = Rect(140,(117 + dif),178,(155 + dif))
+        osmand_rectangle = Rect(160,(117 + dif),198,(155 + dif))
 
-        # Boton Reportar (61 x 61)
-        reportar_rectangle = Rect(10, (148 + dif), 20, (158 + dif))
-        primera_pagina.insert_link({'kind': 2, 'from': reportar_rectangle, 'uri': f'https://www.google.com/maps/search/?api=1&query{id_sordos_list[i]}'})
+        qr_google = qrcode.make("a")
+        qr_google.save('qr1.jpg')
+        primera_pagina.insert_image(googlemaps_rectangle, filename="qr1.jpg")
 
-        # Insertar Imagenes
-        primera_pagina.insert_image(googlemaps_rectangle, filename=icon1)
-        primera_pagina.insert_image(osmand_rectangle, filename=icon2)
-        primera_pagina.insert_image(reportar_rectangle, filename=icon_reportar)
+
+        qr_osmand = qrcode.make("b")
+        qr_osmand.save('qr2.jpg')
+        primera_pagina.insert_image(googlemaps_rectangle, filename="qr2.jpg")
 
         # Coordenadas GPS
         gps = gps_list[i].replace("(","").replace(")","").split(",")
-
-        primera_pagina.insert_link({'kind': 2, 'from': googlemaps_rectangle, 'uri': f'https://www.google.com/maps/search/?api=1&query={gps[0]},{gps[1]}'})
-        primera_pagina.insert_link({'kind': 2, 'from': osmand_rectangle, 'uri': f'https://osmand.net/map?pin={gps[0]},{gps[1]}#16/{gps[0]}/{gps[1]}'})    
-    
 
     
     archivo.save(f"{territory_name} - {fecha_hoy_formato_espanol()}.pdf", garbage=4, deflate=True)
@@ -124,18 +121,15 @@ def insertar_mapa_y_botones(output, territory_name ,icon1, icon2, icon_reportar,
     #os.remove("mapa.jpg")
 
 # Funcion que englobe el proceso para importar desde App Django
-def llenarTerritorioDigital(template_pdf, output_pdf, text1, text2, text3, text4, text5, icon1, icon2, icon_reportar, territory_name, gps1, gps2, gps3, gps4, gps5, id_sordo_1, id_sordo_2, id_sordo_3, id_sordo_4, id_sordo_5, id_asignacion):
+def llenarTerritorioImpreso(template_pdf, output_pdf, text1, text2, text3, text4, text5, territory_name, gps1, gps2, gps3, gps4, gps5, id_sordo_1, id_sordo_2, id_sordo_3, id_sordo_4, id_sordo_5, id_asignacion):
     insertar_texto(template_pdf, output_pdf, text1, text2, text3, text4, text5)
-    insertar_mapa_y_botones(output_pdf, territory_name, icon1, icon2, icon_reportar, gps1, gps2, gps3, gps4, gps5, id_sordo_1, id_sordo_2, id_sordo_3, id_sordo_4, id_sordo_5, id_asignacion)
+    insertar_mapa_y_qr(output_pdf, territory_name, gps1, gps2, gps3, gps4, gps5, id_sordo_1, id_sordo_2, id_sordo_3, id_sordo_4, id_sordo_5, id_asignacion)
     return True
 
 def main():
     parser = argparse.ArgumentParser(description='Script para llenar plantillas de Territorios')
     parser.add_argument('--template', '-t', required=True, help='Plantilla PDF a llenar')
     parser.add_argument('--output', '-o', required=True, help='Archivo de salida')
-    parser.add_argument('--icon1', required=True, help='Icono 1')
-    parser.add_argument('--icon2', required=True, help='Icono 2')
-    parser.add_argument('--icon_reportar', required=True, help='Icono para reportar errores en el Sordo')
     parser.add_argument('--territory_name', '-n', required=True, help='Nombre del Territorio')
     parser.add_argument('--text1', '-1', required=True, help='Texto Sordo 1')
     parser.add_argument('--text2', '-2', required=True, help='Texto Sordo 2')
@@ -157,13 +151,13 @@ def main():
 
     args = parser.parse_args()
 
+    insertar_mapa_y_qr(args.output, args.territory_name, args.gps1, args.gps2, args.gps3, args.gps4, args.gps5, args.id_sordo_1, args.id_sordo_2, args.id_sordo_3, args.id_sordo_4, args.id_sordo_5, args.id_asignacion)
     insertar_texto(args.template, args.output, args.text1, args.text2, args.text3, args.text4, args.text5)
-    insertar_mapa_y_botones(args.output, args.territory_name, args.icon1, args.icon2, args.icon_reportar, args.gps1, args.gps2, args.gps3, args.gps4, args.gps5, args.id_sordo_1, args.id_sordo_2, args.id_sordo_3, args.id_sordo_4, args.id_sordo_5, args.id_asignacion)
 
 if __name__ == "__main__":
     main()
 
 # Ejemplo de uso desde Terminal
 '''
-python territorioPDFdigital.py -t recursos/plantillaDigitalNuevosBotones.pdf -o ./output.pdf -1 "Texto 1" -2 "Texto 2" -3 "Texto 3 lorem ipsum estamos como estamos por que quereos ser muy felice spor la entrada de la autopsta ruminahui ddsa " -4 "Texto 4"     -5 "Texto 5 \n dsadas"     --icon1 recursos/botonGoogle.png     --icon2 recursos/botonOsmand.png --icon_reportar recursos/botonReportar.png --gps1 "(-0.33096,-78.43727)" --gps2 "(-0.32815,-78.43665)" --gps3 "(-0.32581,-78.44173)" --gps4 "(-0.33317,-78.43452)" --gps5 "(-0.32770,-78.42725)" -n "Terracota" --id_sordo_1 SS-031 --id_sordo_2 SS-032 --id_sordo_3 SS-033 --id_sordo_4 SS-034 --id_sordo_5 SS-035 --id_asignacion 13214
+python territorioPDFimpreso.py -t recursos/plantillaVaciaImprimir.pdf -o ./output.pdf -1 "Texto 1" -2 "Texto 2" -3 "Texto 3 lorem ipsum estamos como estamos por que quereos ser muy felice spor la entrada de la autopsta ruminahui ddsa " -4 "Texto 4"     -5 "Texto 5 \n dsadas"  --gps1 "(-0.33096,-78.43727)" --gps2 "(-0.32815,-78.43665)" --gps3 "(-0.32581,-78.44173)" --gps4 "(-0.33317,-78.43452)" --gps5 "(-0.32770,-78.42725)" -n "Terracota" --id_sordo_1 SS-031 --id_sordo_2 SS-032 --id_sordo_3 SS-033 --id_sordo_4 SS-034 --id_sordo_5 SS-035 --id_asignacion 13214
 '''
