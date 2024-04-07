@@ -72,7 +72,7 @@ def insertar_texto(template_pdf, output_pdf, text1, text2, text3, text4, text5):
         output.write(f)
 
     # Cleanup
-    #os.remove("overlay.pdf") # Mover a cleanup function
+    os.remove("overlay.pdf") # Mover a cleanup function
 
 def insertar_mapa_y_botones(output, territory_name ,icon1, icon2, icon_reportar, gps1, gps2, gps3, gps4, gps5, id_sordo_1, id_sordo_2, id_sordo_3, id_sordo_4, id_sordo_5, id_asignacion):
 
@@ -80,15 +80,14 @@ def insertar_mapa_y_botones(output, territory_name ,icon1, icon2, icon_reportar,
     primera_pagina = archivo[0]
 
     # Mapa
-    #generar_mapa(gps1, gps2, gps3, gps4, gps5)
+    generar_mapa(gps1, gps2, gps3, gps4, gps5)
     mapa_rectangle = Rect(0,0,184,112)
     primera_pagina.insert_image(mapa_rectangle, filename="mapa.jpg")
 
     # Boton Entregar Territorio
-    url_entrega = "https://tm.me/start"
     boton_entrega_rectangle = Rect(50,368,130,388)
     primera_pagina.insert_image(boton_entrega_rectangle, filename="recursos/botonTerminar.png")
-    primera_pagina.insert_link({'kind': 2, 'from': boton_entrega_rectangle, 'uri': f'https://www.google.com/maps/search/{id_asignacion}'})
+    primera_pagina.insert_link({'kind': 2, 'from': boton_entrega_rectangle, 'uri': f'https://t.me/TerritoriosSenias_Bot?start=entregar_{id_asignacion}'})
 
     # Botones dependientes del Sordo (GPS y Reportar)
     gps_list = [gps1, gps2, gps3, gps4, gps5]
@@ -102,7 +101,7 @@ def insertar_mapa_y_botones(output, territory_name ,icon1, icon2, icon_reportar,
 
         # Boton Reportar (61 x 61)
         reportar_rectangle = Rect(10, (148 + dif), 20, (158 + dif))
-        primera_pagina.insert_link({'kind': 2, 'from': reportar_rectangle, 'uri': f'https://www.google.com/maps/search/?api=1&query{id_sordos_list[i]}'})
+        primera_pagina.insert_link({'kind': 2, 'from': reportar_rectangle, 'uri': f'https://t.me/TerritoriosSenias_Bot?start=reportar_{id_sordos_list[i]}'})
 
         # Insertar Imagenes
         primera_pagina.insert_image(googlemaps_rectangle, filename=icon1)
@@ -120,8 +119,8 @@ def insertar_mapa_y_botones(output, territory_name ,icon1, icon2, icon_reportar,
     archivo.save(f"{territory_name} - {fecha_hoy_formato_espanol()}.pdf", garbage=4, deflate=True)
 
     # Cleanup
-    #os.remove(output)
-    #os.remove("mapa.jpg")
+    os.remove(output)
+    os.remove("mapa.jpg")
 
 # Funcion que englobe el proceso para importar desde App Django
 def llenarTerritorioDigital(template_pdf, output_pdf, text1, text2, text3, text4, text5, icon1, icon2, icon_reportar, territory_name, gps1, gps2, gps3, gps4, gps5, id_sordo_1, id_sordo_2, id_sordo_3, id_sordo_4, id_sordo_5, id_asignacion):
