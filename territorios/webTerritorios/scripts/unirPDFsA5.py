@@ -1,7 +1,7 @@
 import fitz
 
-src1 = fitz.open("Terracota A - 06 de abril 2024.pdf")
-src2 = fitz.open("Sangolqui - 06 de abril 2024.pdf")
+src1 = fitz.open("Terracota A - 07 de abril 2024.pdf")
+src2 = fitz.open("Sangolqui - 07 de abril 2024.pdf")
 doc = fitz.open()  # empty output PDF
 
 height, width = fitz.paper_size("a4")  # A4 portrait output page format
