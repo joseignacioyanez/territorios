@@ -112,7 +112,7 @@ def insertar_mapa_y_botones(output, territory_name ,icon1, icon2, icon_reportar,
         gps = gps_list[i].replace("(","").replace(")","").split(",")
 
         primera_pagina.insert_link({'kind': 2, 'from': googlemaps_rectangle, 'uri': f'https://www.google.com/maps/search/?api=1&query={gps[0]},{gps[1]}'})
-        primera_pagina.insert_link({'kind': 2, 'from': osmand_rectangle, 'uri': f'https://www.osmand.net/map?pin={gps[0]},{gps[1]}#16/{gps[0]}/{gps[1]}'})    
+        primera_pagina.insert_link({'kind': 2, 'from': osmand_rectangle, 'uri': f'https://osmand.net/map?pin={gps[0]},{gps[1]}#16/{gps[0]}/{gps[1]}'})    
     
 
     
