@@ -95,13 +95,14 @@ async def asignar(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
 async def publicador(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Guarda el Publicador, valida que no existan otras asignaciones y pregunta por el Territorio."""
-    context.user_data['publicador_id'] = update.message.text.split(' - ')[0]
+    context.user_data['publicador_asignar_id'] = update.message.text.split(' - ')[0]
+    context.user_data['publicador_asignar_nombre'] = update.message.text.split(' - ')[1]
     logger.info("Publicador a Asignar: %s", update.message.text)
 
     # Averiguar si el usuario tiene Asignaciones Pendientes de entregar
     try:
         url = 'http://localhost:8000/webTerritorios/asignacion_pendiente/'
-        myobj = {'publicador_id': context.user_data['publicador_id']}
+        myobj = {'publicador_id': context.user_data['publicador_asignar_id']}
         asignacion_pendiente_response =  requests.post(url, json = myobj)
         asignacion_pendiente_json = asignacion_pendiente_response.json()
     except:
@@ -114,7 +115,6 @@ async def publicador(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
         fecha_obj = datetime.datetime.fromisoformat(asignacion_pendiente_json['asignacion_data']['fecha_asignacion'][:-1])  # Eliminamos la 'Z' al final
         fecha_formateada = fecha_obj.strftime("%d de %B del %Y")
-        print(fecha_formateada)
         await update.message.reply_text(
 f'''
 El Publicador seleccionado tiene una asignación pendiente. \n
@@ -150,17 +150,18 @@ async def verificacion(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
     else:
         
         # Obtener Lista de Territorios Disponibles
-        print(context.user_data['user_data'])
         try:
             url = 'http://localhost:8000/webTerritorios/territorios_disponibles/'
             myobj = {'id_congregacion': context.user_data['user_data']['congregacion_id']}
             territorios_disponibles_response =  requests.post(url, json = myobj)
             territorios_disponibles_json = territorios_disponibles_response.json()
-            print(territorios_disponibles_json)
 
             reply_keyboard = []
             for territorio in territorios_disponibles_json['territorios']:
                 reply_keyboard.append([str(territorio['numero']) + ' - ' + territorio['nombre']])
+
+            # Guardar lista de Territorios en Contexto para acceder despues
+            context.user_data['territorios_disponibles'] = territorios_disponibles_json['territorios']            
 
             await update.message.reply_text(
                 f"Escoge el Territorio que deseas asignar al Publicador:",
@@ -180,23 +181,60 @@ async def verificacion(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
 
 async def territorio(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Guarda el Territorio y pregunta por el Método de Entrega."""
-    
-    user = update.message.from_user
-    photo_file = await update.message.photo[-1].get_file()
-    await photo_file.download_to_drive("user_photo.jpg")
-    logger.info("Photo of %s: %s", user.first_name, "user_photo.jpg")
-    await update.message.reply_text(
-        "Gorgeous! Now, send me your location please, or send /skip if you don't want to."
-    )
 
+    territorio_numero_deseado = update.message.text.split(' - ')[0]
+    territorio_nombre_deseado = update.message.text.split(' - ')[1]
+    
+    for territorio in context.user_data['territorios_disponibles']:
+        if str(territorio['numero']) == territorio_numero_deseado and territorio['nombre'] == territorio_nombre_deseado:
+            context.user_data['territorio_asignar_id'] = territorio['id']
+            context.user_data['territorio_asignar_numero_nombre'] = str(territorio['numero']) + ' - ' + territorio['nombre']
+            break
+
+    await update.message.reply_text(
+f'''
+¡Buena elección! Por último... \n
+¿Cómo deseas que se entregue el territorio?.
+''',
+            parse_mode='markdown',
+            reply_markup=ReplyKeyboardMarkup(
+                [['Enviar al Telegram del herman@'], 
+                    ['Registrar asignación y Enviarme el PDF digital por aquí'], 
+                    ['Registrar asignación y Enviarme el PDF para Imprimir por aquí']], one_time_keyboard=True, input_field_placeholder="¿Cómo entregar?"
+            ),
+        )
+        
     return METODO_ENVIO
 
+async def metodo_envio(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Guarda el Método de Entrega y finaliza la asignación."""
+
+    context.user_data['metodo_envio'] = update.message.text
+
+    if context.user_data['metodo_envio'] == 'Enviar al Telegram del herman@':
+        pass
+    elif context.user_data['metodo_envio'] == 'Registrar asignación y Enviarme el PDF digital por aquí':
+        pass
+    elif context.user_data['metodo_envio'] == 'Registrar asignación y Enviarme el PDF para Imprimir por aquí':
+        pass
+    else:
+        await update.message.reply_text(
+            "No se reconoce el método de entrega. Por favor contacta a un administrador."
+        )
+        return ConversationHandler.END
+    
+    await update.message.reply_text(
+        f"¡Excelente! \n {context.user_data['territorio_asignar_numero_nombre']} se asignó a {context.user_data['publicador_asignar_nombre']}. \n ¡Gracias por tu ayuda!", reply_markup=ReplyKeyboardRemove()
+    )
+
+    return ConversationHandler.END
+
 async def cancelar(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """Cancels and ends the conversation."""
+    """Cancela y finaliza la conversación."""
     user = update.message.from_user
     logger.info("User %s canceled the conversation.", user.first_name)
     await update.message.reply_text(
-        "Bye! I hope we can talk again some day.", reply_markup=ReplyKeyboardRemove()
+        "Adiós! Espero volvamos a conversar.", reply_markup=ReplyKeyboardRemove()
     )
 
     return ConversationHandler.END
@@ -211,13 +249,10 @@ def main() -> None:
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler("asignar", asignar)],
         states={
-            PUBLICADOR: [MessageHandler(None, publicador)],
-            VERIFICACION: [MessageHandler(None, verificacion)],
-            TERRITORIO: [MessageHandler(None, territorio)],
-            #METODO_ENVIO: [
-            #    MessageHandler(filters.LOCATION, location),
-            #    CommandHandler("skip", skip_location),
-            #]
+            PUBLICADOR: [MessageHandler(None, publicador), CommandHandler("cancelar", cancelar)],
+            VERIFICACION: [MessageHandler(None, verificacion), CommandHandler("cancelar", cancelar)],
+            TERRITORIO: [MessageHandler(None, territorio), CommandHandler("cancelar", cancelar)],
+            METODO_ENVIO: [MessageHandler(None, metodo_envio), CommandHandler("cancelar", cancelar)]
         },
         fallbacks=[CommandHandler("cancelar", cancelar)],
     )
