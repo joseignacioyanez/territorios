@@ -1,16 +1,20 @@
 
 import datetime
+import json
 from django import forms
+from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse, reverse_lazy
 from django.utils.safestring import SafeString
 from django.views import View
-from .models import Sordo, Publicador, Territorio
+from .models import Asignacion, Sordo, Publicador, Territorio
 from django.contrib.auth.views import LoginView
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import logout
 from django.db.models import Q
+from django.contrib.auth.models import User
+from django.views.decorators.csrf import csrf_exempt
 
 
 class TerritoriosLoginView(LoginView):
@@ -81,4 +85,155 @@ class NewSordoForm(forms.ModelForm):
 
         def as_div(self):
             return SafeString(super().as_div().replace("<div>", "<div class='form-group mb-3'>"))
+
+# Vista para obtener datos del usuario en base a su ID
+# Usada en Bot de Telegram para validar permisos del Usuario en base a su grupos de permisos
+@csrf_exempt
+def datos_usuario_view(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            user_id = data.get('user_id')
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+        if not user_id:
+            return JsonResponse({'error': 'user_id not provided'}, status=400)
+
+        try:
+            user = User.objects.get(pk=user_id)
+        except User.DoesNotExist:
+            return JsonResponse({'error': 'User not found'}, status=404)
+
+        user_data = {
+            'id': user.id,
+            'username': user.username,
+            'nombre': user.publicador.nombre,
+            'groups': list(user.groups.values_list('name', flat=True)),
+            'telegram_chatid': user.publicador.telegram_chatid,
+            'congregacion_nombre': user.publicador.congregacion.nombre,
+            'congregacion_id': user.publicador.congregacion.id,
+        }
+
+        return JsonResponse(user_data)
+
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
     
+@csrf_exempt
+def publicadores_activos_misma_congregacion_view(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            user_id = data.get('user_id')
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+        if not user_id:
+            return JsonResponse({'error': 'user_id not provided'}, status=400)
+
+        try:
+            user = User.objects.get(pk=user_id)
+        except User.DoesNotExist:
+            return JsonResponse({'error': 'User not found'}, status=404)
+
+        congregacion_id = user.publicador.congregacion.id
+        filtered_users = User.objects.filter(publicador__congregacion__id=congregacion_id, is_active=True)
+
+        user_list = []
+        for user in filtered_users:
+            user_data = {
+                'id': user.id,
+                'username': user.username,
+                "nombre": user.publicador.nombre,
+                'groups': list(user.groups.values_list('name', flat=True)),
+                'chat_id': user.publicador.telegram_chatid,  
+                'congregacion': user.publicador.congregacion.nombre,
+            }
+            user_list.append(user_data)
+
+        return JsonResponse(user_list, safe=False)
+
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+@csrf_exempt
+def get_usuario_por_chatid_view(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            telegram_chatid = data.get('telegram_chatid')
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+        if not telegram_chatid:
+            return JsonResponse({'error': 'telegram_chatid not provided'}, status=400)
+
+        try:
+            user = User.objects.get(publicador__telegram_chatid=telegram_chatid)
+        except User.DoesNotExist:
+            return JsonResponse({'error': 'User not found'}, status=404)
+
+        return JsonResponse({'user_id': user.id})
+
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+@csrf_exempt
+def verificar_asignacion_pendiente(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            publicador_id = data.get('publicador_id')
+            
+            if publicador_id is None:
+                raise ValueError("No se proporcionó el ID del publicador en la solicitud.")
+            
+            # Busca la asignación pendiente para el publicador especificado
+            asignacion_pendiente = Asignacion.objects.filter(publicador_id=publicador_id, fecha_fin__isnull=True).first()
+            
+            if asignacion_pendiente:
+                # Si se encuentra una asignación pendiente, devuelve sus detalles
+                asignacion_data = {
+                    'id': asignacion_pendiente.id,
+                    'territorio_id': asignacion_pendiente.territorio_id,
+                    'territorio_numero': asignacion_pendiente.territorio.numero,
+                    'territorio_nombre': asignacion_pendiente.territorio.nombre,
+                    'publicador_id': asignacion_pendiente.publicador_id,
+                    'fecha_asignacion': asignacion_pendiente.fecha_asignacion,
+                }
+                return JsonResponse({'asignacion_pendiente': True, 'asignacion_data': asignacion_data})
+            else:
+                # Si no hay asignación pendiente, devuelve un indicador de que no se encontró ninguna
+                return JsonResponse({'asignacion_pendiente': False})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+    else:
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
+    
+@csrf_exempt
+def territorios_disponibles(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            id_congregacion = data.get('id_congregacion')
+            
+            if id_congregacion is None:
+                raise ValueError("No se proporcionó el ID de la congregacion en la solicitud.")
+
+            # Filtrar territorios disponibles para la congregación
+            territorios = Territorio.objects.filter(
+                Q(congregacion=id_congregacion) & 
+                (Q(asignaciones_de_este_territorio__fecha_fin__isnull=False) | Q(asignaciones_de_este_territorio__isnull=True))
+            )
+
+            # Construir lista de territorios disponibles
+            territorios_json = [{
+                'id': territorio.id,
+                'numero': territorio.numero,
+                'nombre': territorio.nombre
+            } for territorio in territorios]
+
+            return JsonResponse({'territorios': territorios_json})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
