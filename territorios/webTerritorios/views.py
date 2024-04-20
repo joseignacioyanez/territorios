@@ -138,7 +138,7 @@ def publicadores_activos_misma_congregacion_view(request):
             return JsonResponse({'error': 'User not found'}, status=404)
 
         congregacion_id = user.publicador.congregacion.id
-        filtered_users = User.objects.filter(publicador__congregacion__id=congregacion_id, is_active=True)
+        filtered_users = User.objects.filter(publicador__congregacion__id=congregacion_id, publicador__activo=True)
 
         user_list = []
         for user in filtered_users:
@@ -148,7 +148,8 @@ def publicadores_activos_misma_congregacion_view(request):
                 "nombre": user.publicador.nombre,
                 'groups': list(user.groups.values_list('name', flat=True)),
                 'chat_id': user.publicador.telegram_chatid,  
-                'congregacion': user.publicador.congregacion.nombre,
+                'congregacion_nombre': user.publicador.congregacion.nombre,
+                'congregacion_id': user.publicador.congregacion.id,
             }
             user_list.append(user_data)
 
@@ -235,5 +236,46 @@ def territorios_disponibles(request):
             } for territorio in territorios]
 
             return JsonResponse({'territorios': territorios_json})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+        
+@csrf_exempt
+def asignaciones_pendientes(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            id_congregacion = data.get('id_congregacion')
+            
+            if id_congregacion is None:
+                raise ValueError("No se proporcionó el ID de la congregacion en la solicitud.")
+
+            # Verificar si se proporcionó el ID de la congregación
+            if not id_congregacion:
+                raise ValueError("No se proporcionó el ID de la congregación en la solicitud.")
+
+            # Filtrar asignaciones abiertas para la congregación
+            asignaciones_abiertas = Asignacion.objects.filter(
+                publicador__congregacion_id=id_congregacion,
+                fecha_fin__isnull=True
+            )
+
+            asignaciones = []
+
+            for asignacion in asignaciones_abiertas:
+                asignaciones.append({
+                    'id': asignacion.id,
+                    'publicador_id': asignacion.publicador.id,
+                    'publicador_nombre': asignacion.publicador.nombre,
+                    'territorio_id': asignacion.territorio.id,
+                    'territorio_numero': asignacion.territorio.numero,
+                    'territorio_nombre': asignacion.territorio.nombre,
+                    'fecha_asignacion': asignacion.fecha_asignacion,
+                    'fecha_fin': asignacion.fecha_fin,
+                })
+
+
+
+            # Devolver las asignaciones abiertas en formato JSON
+            return JsonResponse({'asignaciones': asignaciones})
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=400)

@@ -10,4 +10,5 @@ urlpatterns = [
     path("usuario_telegram/", views.get_usuario_por_chatid_view, name="usuario_telegram"),
     path("asignacion_pendiente/", views.verificar_asignacion_pendiente, name="asignacion_pendiente"),
     path("territorios_disponibles/", views.territorios_disponibles, name="territorios_disponibles"),
+    path("asignaciones_pendientes/", views.asignaciones_pendientes, name="asignaciones_pendientes"),
 ]
