@@ -11,4 +11,5 @@ urlpatterns = [
     path("asignacion_pendiente/", views.verificar_asignacion_pendiente, name="asignacion_pendiente"),
     path("territorios_disponibles/", views.territorios_disponibles, name="territorios_disponibles"),
     path("asignaciones_pendientes/", views.asignaciones_pendientes, name="asignaciones_pendientes"),
+    path("asignacion_detalles/", views.asignacion_detalles, name="asignacion_detalles"),
 ]

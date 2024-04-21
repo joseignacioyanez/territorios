@@ -279,3 +279,35 @@ def asignaciones_pendientes(request):
             return JsonResponse({'asignaciones': asignaciones})
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=400)
+        
+@csrf_exempt
+async def asignacion_detalles(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            id_asignacion = data.get('id_asignacion')
+            
+            if id_asignacion is None:
+                raise ValueError("No se proporcionó el ID de la asignación en la solicitud.")
+
+            # Verificar si se proporcionó el ID de la asignación
+            if not id_asignacion:
+                raise ValueError("No se proporcionó el ID de la asignación en la solicitud.")
+
+            # Filtrar asignaciones abiertas para la congregación
+            asignacion = Asignacion.objects.get(id=id_asignacion)
+
+            asignacion_data = {
+                'id': asignacion.id,
+                'publicador_id': asignacion.publicador.id,
+                'publicador_nombre': asignacion.publicador.nombre,
+                'territorio_id': asignacion.territorio.id,
+                'territorio_numero': asignacion.territorio.numero,
+                'territorio_nombre': asignacion.territorio.nombre,
+                'fecha_asignacion': asignacion.fecha_asignacion,
+                'fecha_fin': asignacion.fecha_fin,
+            }
+
+            return JsonResponse({'asignacion': asignacion_data})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)

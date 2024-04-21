@@ -5,6 +5,7 @@
 import datetime
 import locale
 import logging
+import time
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update, InlineKeyboardButton, InlineKeyboardMarkup
 import requests
 from telegram.ext import (
@@ -293,7 +294,17 @@ async def reporte_asignaciones(update: Update, context: ContextTypes.DEFAULT_TYP
                 
                 boton_asignacion += f" {days_since_date} días | {territorio} -> {publicador}"
 
-                keyboard.append([InlineKeyboardButton(boton_asignacion, callback_data=f"{asignacion['id']}")])       
+                # Callback Data
+                callback_data = ""
+                # 1. Timestamp epoch
+                callback_data += str(int(time.time()))
+                # 2. Flag Proceso
+                callback_data += ";reporte_asignaciones;"
+                # 3. ID Asignacion
+                callback_data += f"{asignacion['id']}"
+
+
+                keyboard.append([InlineKeyboardButton(boton_asignacion, callback_data=callback_data)])       
 
             reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -308,7 +319,8 @@ async def reporte_asignaciones(update: Update, context: ContextTypes.DEFAULT_TYP
             )
             return ConversationHandler.END
 
-    except:
+    except Exception as e:
+        print(e)
         await update.message.reply_text(
             "No se reconoce este usuario. Por favor contacta a un administrador."
         )
@@ -322,7 +334,22 @@ async def inline_button_asignaciones(update: Update, context: ContextTypes.DEFAU
     # Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
     await query.answer()
 
-    await query.message.reply_text(text=f"Selected option: {query.data}")
+    timestamp = query.data.split(';')[0]
+    flag_proceso = query.data.split(';')[1]
+    dato = query.data.split(';')[2]
+
+    # Ignorar Queries de mas de 5 minutos
+    if int(time.time()) - int(timestamp) > 300:
+        pass
+    else:
+        if flag_proceso == "reporte_asignaciones":
+            # Obtener detalles de asignacion
+            url = 'http://localhost:8000/webTerritorios/asignacion_detalles/'
+            myobj = {'id_asignacion': dato}
+            asignacion_detalles_response =  requests.post(url, json = myobj)
+            asignacion_detalles_json = asignacion_detalles_response.json()
+
+            await query.message.reply_text(text=f"Asignacion: {query.data}")
 
 async def start (update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Comando /start sin argumentos - Ignorar
