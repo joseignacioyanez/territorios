@@ -5,7 +5,7 @@
 import datetime
 import locale
 import logging
-from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
+from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update, InlineKeyboardButton, InlineKeyboardMarkup
 import requests
 from telegram.ext import (
     Application,
@@ -14,6 +14,7 @@ from telegram.ext import (
     ConversationHandler,
     MessageHandler,
     filters,
+    CallbackQueryHandler,
 )
 
 # Enable logging
@@ -269,27 +270,36 @@ async def reporte_asignaciones(update: Update, context: ContextTypes.DEFAULT_TYP
             asignaciones_pendientes_response =  requests.post(url, json = myobj)
             asignaciones_pendientes_json = asignaciones_pendientes_response.json()
 
-            respuesta = "📋 *Asignaciones Pendientes* \n\n"
+            encabezado = "📋 *Asignaciones Pendientes* \n\n"
+
+            keyboard = []
 
             for asignacion in asignaciones_pendientes_json['asignaciones']:
-                territorio = str(asignacion['territorio_numero']) + ' - ' + asignacion['territorio_nombre']
+                territorio = str(asignacion['territorio_numero']) + '-' + asignacion['territorio_nombre']
                 publicador = asignacion['publicador_nombre']
 
                 current_date = datetime.datetime.now().date()
                 given_date = datetime.datetime.fromisoformat(asignacion['fecha_asignacion'][:-1]).date()
                 days_since_date = (current_date - given_date).days
                 
+                boton_asignacion = ""
+
                 if days_since_date < 14:
-                    respuesta += f"🟢"
+                    boton_asignacion += f"🟢"
                 elif days_since_date < 21:
-                    respuesta += f"🟡"
+                    boton_asignacion += f"🟡"
                 else:
-                    respuesta += f"🔴"
+                    boton_asignacion += f"🔴"
                 
-                respuesta += f" * Hace {days_since_date} días* \n {territorio} -> {publicador} \n\n"
+                boton_asignacion += f" {days_since_date} días | {territorio} -> {publicador}"
+
+                keyboard.append([InlineKeyboardButton(boton_asignacion, callback_data=f"{asignacion['id']}")])       
+
+            reply_markup = InlineKeyboardMarkup(keyboard)
 
             await update.message.reply_text(
-                respuesta,
+                encabezado,
+                reply_markup=reply_markup,
                 parse_mode='markdown'
             )
         else:
@@ -304,11 +314,15 @@ async def reporte_asignaciones(update: Update, context: ContextTypes.DEFAULT_TYP
         )
         return ConversationHandler.END
 
-    
-    
+async def inline_button_asignaciones(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Parses the CallbackQuery and updates the message text."""
+    query = update.callback_query
 
+    # CallbackQueries need to be answered, even if no notification to the user is needed
+    # Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
+    await query.answer()
 
-    pass
+    await query.message.reply_text(text=f"Selected option: {query.data}")
 
 async def start (update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Comando /start sin argumentos - Ignorar
@@ -379,17 +393,17 @@ def main() -> None:
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler("asignar", asignar)],
         states={
-            PUBLICADOR: [MessageHandler(None, publicador), CommandHandler("cancelar", cancelar)],
-            VERIFICACION: [MessageHandler(None, verificacion), CommandHandler("cancelar", cancelar)],
-            TERRITORIO: [MessageHandler(None, territorio), CommandHandler("cancelar", cancelar)],
-            METODO_ENVIO: [MessageHandler(None, metodo_envio), CommandHandler("cancelar", cancelar)]
+            PUBLICADOR: [MessageHandler(filters.Regex("^(?!\/cancelar$).*"), publicador), CommandHandler("cancelar", cancelar)],
+            VERIFICACION: [MessageHandler(filters.Regex("^(?!\/cancelar$).*"), verificacion), CommandHandler("cancelar", cancelar)],
+            TERRITORIO: [MessageHandler(filters.Regex("^(?!\/cancelar$).*"), territorio), CommandHandler("cancelar", cancelar)],
+            METODO_ENVIO: [MessageHandler(filters.Regex("^(?!\/cancelar$).*"), metodo_envio), CommandHandler("cancelar", cancelar)]
         },
         fallbacks=[CommandHandler("cancelar", cancelar)],
     )
-
     application.add_handler(conv_handler)
 
     application.add_handler(CommandHandler("reporteAsignaciones",reporte_asignaciones))
+    application.add_handler(CallbackQueryHandler(inline_button_asignaciones))
 
     application.add_handler(CommandHandler("start", start))
     application.add_handler(MessageHandler( filters.ALL, echo))
