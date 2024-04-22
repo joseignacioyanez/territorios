@@ -184,65 +184,6 @@ def get_usuario_por_chatid_view(request):
     else:
         return JsonResponse({'error': 'Method not allowed'}, status=405)
 
-@csrf_exempt
-def verificar_asignacion_pendiente(request):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            publicador_id = data.get('publicador_id')
-            
-            if publicador_id is None:
-                raise ValueError("No se proporcionó el ID del publicador en la solicitud.")
-            
-            # Busca la asignación pendiente para el publicador especificado
-            asignacion_pendiente = Asignacion.objects.filter(publicador_id=publicador_id, fecha_fin__isnull=True).first()
-            
-            if asignacion_pendiente:
-                # Si se encuentra una asignación pendiente, devuelve sus detalles
-                asignacion_data = {
-                    'id': asignacion_pendiente.id,
-                    'territorio_id': asignacion_pendiente.territorio_id,
-                    'territorio_numero': asignacion_pendiente.territorio.numero,
-                    'territorio_nombre': asignacion_pendiente.territorio.nombre,
-                    'publicador_id': asignacion_pendiente.publicador_id,
-                    'fecha_asignacion': asignacion_pendiente.fecha_asignacion,
-                }
-                return JsonResponse({'asignacion_pendiente': True, 'asignacion_data': asignacion_data})
-            else:
-                # Si no hay asignación pendiente, devuelve un indicador de que no se encontró ninguna
-                return JsonResponse({'asignacion_pendiente': False})
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=400)
-    else:
-        return JsonResponse({'error': 'Método no permitido'}, status=405)
-    
-@csrf_exempt
-def territorios_disponibles(request):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            id_congregacion = data.get('id_congregacion')
-            
-            if id_congregacion is None:
-                raise ValueError("No se proporcionó el ID de la congregacion en la solicitud.")
-
-            # Filtrar territorios disponibles para la congregación
-            territorios = Territorio.objects.filter(
-                Q(congregacion=id_congregacion) & 
-                (Q(asignaciones_de_este_territorio__fecha_fin__isnull=False) | Q(asignaciones_de_este_territorio__isnull=True))
-            )
-
-            # Construir lista de territorios disponibles
-            territorios_json = [{
-                'id': territorio.id,
-                'numero': territorio.numero,
-                'nombre': territorio.nombre
-            } for territorio in territorios]
-
-            return JsonResponse({'territorios': territorios_json})
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=400)
-        
         
 # API
 # Django REST Framework
@@ -259,15 +200,18 @@ class TerritorioViewSet(viewsets.ModelViewSet):
     serializer_class = TerritorioSerializer
 
     @action(detail=False, methods=['post'])
-    def get_disponibles(self, request):
+    def disponibles(self, request):
         data = request.data
         id_congregacion = data.get('id_congregacion')
-        queryset = Territorio.objects.filter(
-            Q(congregacion=id_congregacion) & 
-            Q(asignaciones_de_este_territorio__fecha_fin__isnull=False) | Q(asignaciones_de_este_territorio__isnull=True)
-        )
-        serializer = TerritorioSerializer(queryset, many=True)
-        return Response(serializer.data)
+        if id_congregacion is None:
+            return Response({'error': 'No se proporcionó el ID de la congregación en la solicitud'}, status=400)
+        else:
+            queryset = Territorio.objects.filter(
+                Q(congregacion=id_congregacion) & 
+                Q(asignaciones_de_este_territorio__fecha_fin__isnull=False) | Q(asignaciones_de_este_territorio__isnull=True)
+            )
+            serializer = TerritorioSerializer(queryset, many=True)
+            return Response(serializer.data)
 
 class PublicadorViewSet(viewsets.ModelViewSet):
     queryset = Publicador.objects.all()
@@ -282,12 +226,15 @@ class AsignacionViewSet(viewsets.ModelViewSet):
     serializer_class = AsignacionSerializer
 
     @action(detail=False, methods=['post'])
-    def get_pendientes(self, request):
+    def pendientes(self, request):
         data = request.data
         id_congregacion = data.get('id_congregacion')
-        queryset = Asignacion.objects.filter(
-            Q(territorio__congregacion=id_congregacion) & 
-            Q(fecha_fin__isnull=True)
-        )
-        serializer = AsignacionSerializer(queryset, many=True)
-        return Response(serializer.data)
+        if id_congregacion is None:
+            return Response({'error': 'No se proporcionó el ID de la congregación en la solicitud'}, status=400)
+        else:
+            queryset = Asignacion.objects.filter(
+                Q(territorio__congregacion=id_congregacion) & 
+                Q(fecha_fin__isnull=True)
+            )
+            serializer = AsignacionSerializer(queryset, many=True)
+            return Response(serializer.data)
