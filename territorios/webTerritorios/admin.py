@@ -7,10 +7,14 @@ from.models import *
 
 
 class SordoAdmin(admin.ModelAdmin):
+    exclude = ('codigo', 'local_id')
+
     # Mostrar campos como TextArea
     def get_form(self, request, obj=None, **kwargs):
         kwargs['widgets'] = {
-            'descripcion':forms.Textarea,
+            'detalles_familia':forms.Textarea,
+            'detalles_sordo':forms.Textarea,
+            'detalles_direccion':forms.Textarea,
             'direccion': forms.Textarea,
             }
         return super().get_form(request, obj, **kwargs)
@@ -32,10 +36,6 @@ admin.site.register(User, UserAdmin)
 # Register your models here.
 admin.site.register(Sordo, SordoAdmin)
 admin.site.register(Congregacion)
-admin.site.register(Genero)
-admin.site.register(SeniasTipo)
 admin.site.register(EstadoSordo)
 admin.site.register(Territorio)
 admin.site.register(Asignacion)
-admin.site.register(Log)
-admin.site.register(TipoLog)

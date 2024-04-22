@@ -17,10 +17,22 @@ from django.contrib import admin
 from django.urls import path, include
 
 from webTerritorios.views import TerritoriosLoginView, logoutView
+from rest_framework import routers
+from webTerritorios import views as webTerritorios_views
+
+# Router para la API
+router = routers.DefaultRouter()
+router.register(r'congregaciones', webTerritorios_views.CongregacionViewSet, basename="congregaciones")
+router.register(r'publicadores', webTerritorios_views.PublicadorViewSet, basename="publicadores")
+router.register(r'sordos', webTerritorios_views.SordoViewSet, basename="sordos")
+router.register(r'territorios', webTerritorios_views.TerritorioViewSet, basename="territorios")
+router.register(r'estados', webTerritorios_views.EstadoSordoViewSet, basename="estados")
+router.register(r'asignaciones', webTerritorios_views.AsignacionViewSet, basename="asignaciones")
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('login/', TerritoriosLoginView.as_view(template_name="registration/login.html"), name="login"),
     path('logout/', logoutView, name='logout'),
+    path('api/', include(router.urls)),
     path("webTerritorios/", include("webTerritorios.urls")),
 ]

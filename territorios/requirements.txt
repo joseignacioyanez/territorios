@@ -8,6 +8,7 @@ click==8.1.7
 configobj==5.0.8
 configparser==6.0.1
 Django==5.0.1
+djangorestframework==3.15.1
 etelemetry==0.3.1
 exceptiongroup==1.2.0
 filelock==3.13.3
@@ -33,12 +34,14 @@ PyMuPDF==1.24.0
 PyMuPDFb==1.24.0
 pyparsing==3.1.2
 PyPDF2==3.0.1
+pypng==0.20220715.0
 python-dateutil==2.9.0.post0
 python-decouple==3.8
 python-dotenv==1.0.1
 python-telegram-bot==21.0.1
 pytz==2024.1
 pyxnat==1.6.2
+qrcode==7.4.2
 rdflib==7.0.0
 reportlab==4.1.0
 requests==2.31.0
@@ -51,4 +54,3 @@ traits==6.3.2
 typing_extensions==4.9.0
 tzdata==2024.1
 urllib3==2.2.1
-qrcode

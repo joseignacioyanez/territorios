@@ -7,7 +7,9 @@ from django.shortcuts import redirect, render
 from django.urls import reverse, reverse_lazy
 from django.utils.safestring import SafeString
 from django.views import View
-from .models import Asignacion, Sordo, Publicador, Territorio
+from .models import Asignacion, Sordo, Publicador, Territorio, Congregacion, EstadoSordo
+from .serializers import CongregacionSerializer, EstadoSordoSerializer, TerritorioSerializer, PublicadorSerializer, SordoSerializer, AsignacionSerializer
+from rest_framework import viewsets
 from django.contrib.auth.views import LoginView
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -281,7 +283,7 @@ def asignaciones_pendientes(request):
             return JsonResponse({'error': str(e)}, status=400)
         
 @csrf_exempt
-async def asignacion_detalles(request):
+def asignacion_detalles(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
@@ -311,3 +313,29 @@ async def asignacion_detalles(request):
             return JsonResponse({'asignacion': asignacion_data})
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=400)
+        
+# API
+# Django REST Framework
+class CongregacionViewSet(viewsets.ModelViewSet):
+    queryset = Congregacion.objects.all()
+    serializer_class = CongregacionSerializer
+
+class EstadoSordoViewSet(viewsets.ModelViewSet):
+    queryset = EstadoSordo.objects.all()
+    serializer_class = EstadoSordoSerializer
+
+class TerritorioViewSet(viewsets.ModelViewSet):
+    queryset = Territorio.objects.all()
+    serializer_class = TerritorioSerializer
+
+class PublicadorViewSet(viewsets.ModelViewSet):
+    queryset = Publicador.objects.all()
+    serializer_class = PublicadorSerializer
+
+class SordoViewSet(viewsets.ModelViewSet):
+    queryset = Sordo.objects.all()
+    serializer_class = SordoSerializer
+
+class AsignacionViewSet(viewsets.ModelViewSet):
+    queryset = Asignacion.objects.all()
+    serializer_class = AsignacionSerializer

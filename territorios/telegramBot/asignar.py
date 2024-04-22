@@ -299,7 +299,7 @@ async def reporte_asignaciones(update: Update, context: ContextTypes.DEFAULT_TYP
                 # 1. Timestamp epoch
                 callback_data += str(int(time.time()))
                 # 2. Flag Proceso
-                callback_data += ";reporte_asignaciones;"
+                callback_data += ";reporte_asignacion;"
                 # 3. ID Asignacion
                 callback_data += f"{asignacion['id']}"
 
@@ -334,6 +334,8 @@ async def inline_button_asignaciones(update: Update, context: ContextTypes.DEFAU
     # Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
     await query.answer()
 
+    print(query.data)
+
     timestamp = query.data.split(';')[0]
     flag_proceso = query.data.split(';')[1]
     dato = query.data.split(';')[2]
@@ -342,14 +344,23 @@ async def inline_button_asignaciones(update: Update, context: ContextTypes.DEFAU
     if int(time.time()) - int(timestamp) > 300:
         pass
     else:
-        if flag_proceso == "reporte_asignaciones":
+        if flag_proceso == "reporte_asignacion":
             # Obtener detalles de asignacion
             url = 'http://localhost:8000/webTerritorios/asignacion_detalles/'
             myobj = {'id_asignacion': dato}
             asignacion_detalles_response =  requests.post(url, json = myobj)
-            asignacion_detalles_json = asignacion_detalles_response.json()
+            asignacion_detalles_json = asignacion_detalles_response.json()['asignacion']
 
-            await query.message.reply_text(text=f"Asignacion: {query.data}")
+            print(asignacion_detalles_json)
+
+            # Devolver botones para Borrar y Entregar Asignacion
+            timestamp_now = str(int(time.time()))
+            keyboard = [
+                [InlineKeyboardButton("🗑️ Borrar", callback_data=f"{timestamp_now};borrar_asignacion;{dato}")],
+                [InlineKeyboardButton("✅ Entregar", callback_data=f"{timestamp_now};entregar_asignacion;{dato}")]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            await query.message.reply_text(text=f"📋 Asignacion: {asignacion_detalles_json['id']}: {asignacion_detalles_json['territorio_numero']} - {asignacion_detalles_json['territorio_nombre']} -> {asignacion_detalles_json['publicador_nombre']}", reply_markup=reply_markup)
 
 async def start (update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Comando /start sin argumentos - Ignorar
