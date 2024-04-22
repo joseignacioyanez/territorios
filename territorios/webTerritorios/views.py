@@ -17,6 +17,8 @@ from django.contrib.auth import logout
 from django.db.models import Q
 from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
 
 class TerritoriosLoginView(LoginView):
@@ -241,78 +243,6 @@ def territorios_disponibles(request):
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=400)
         
-@csrf_exempt
-def asignaciones_pendientes(request):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            id_congregacion = data.get('id_congregacion')
-            
-            if id_congregacion is None:
-                raise ValueError("No se proporcionó el ID de la congregacion en la solicitud.")
-
-            # Verificar si se proporcionó el ID de la congregación
-            if not id_congregacion:
-                raise ValueError("No se proporcionó el ID de la congregación en la solicitud.")
-
-            # Filtrar asignaciones abiertas para la congregación
-            asignaciones_abiertas = Asignacion.objects.filter(
-                publicador__congregacion_id=id_congregacion,
-                fecha_fin__isnull=True
-            )
-
-            asignaciones = []
-
-            for asignacion in asignaciones_abiertas:
-                asignaciones.append({
-                    'id': asignacion.id,
-                    'publicador_id': asignacion.publicador.id,
-                    'publicador_nombre': asignacion.publicador.nombre,
-                    'territorio_id': asignacion.territorio.id,
-                    'territorio_numero': asignacion.territorio.numero,
-                    'territorio_nombre': asignacion.territorio.nombre,
-                    'fecha_asignacion': asignacion.fecha_asignacion,
-                    'fecha_fin': asignacion.fecha_fin,
-                })
-
-
-
-            # Devolver las asignaciones abiertas en formato JSON
-            return JsonResponse({'asignaciones': asignaciones})
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=400)
-        
-@csrf_exempt
-def asignacion_detalles(request):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            id_asignacion = data.get('id_asignacion')
-            
-            if id_asignacion is None:
-                raise ValueError("No se proporcionó el ID de la asignación en la solicitud.")
-
-            # Verificar si se proporcionó el ID de la asignación
-            if not id_asignacion:
-                raise ValueError("No se proporcionó el ID de la asignación en la solicitud.")
-
-            # Filtrar asignaciones abiertas para la congregación
-            asignacion = Asignacion.objects.get(id=id_asignacion)
-
-            asignacion_data = {
-                'id': asignacion.id,
-                'publicador_id': asignacion.publicador.id,
-                'publicador_nombre': asignacion.publicador.nombre,
-                'territorio_id': asignacion.territorio.id,
-                'territorio_numero': asignacion.territorio.numero,
-                'territorio_nombre': asignacion.territorio.nombre,
-                'fecha_asignacion': asignacion.fecha_asignacion,
-                'fecha_fin': asignacion.fecha_fin,
-            }
-
-            return JsonResponse({'asignacion': asignacion_data})
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=400)
         
 # API
 # Django REST Framework
@@ -328,6 +258,17 @@ class TerritorioViewSet(viewsets.ModelViewSet):
     queryset = Territorio.objects.all()
     serializer_class = TerritorioSerializer
 
+    @action(detail=False, methods=['post'])
+    def get_disponibles(self, request):
+        data = request.data
+        id_congregacion = data.get('id_congregacion')
+        queryset = Territorio.objects.filter(
+            Q(congregacion=id_congregacion) & 
+            Q(asignaciones_de_este_territorio__fecha_fin__isnull=False) | Q(asignaciones_de_este_territorio__isnull=True)
+        )
+        serializer = TerritorioSerializer(queryset, many=True)
+        return Response(serializer.data)
+
 class PublicadorViewSet(viewsets.ModelViewSet):
     queryset = Publicador.objects.all()
     serializer_class = PublicadorSerializer
@@ -339,3 +280,14 @@ class SordoViewSet(viewsets.ModelViewSet):
 class AsignacionViewSet(viewsets.ModelViewSet):
     queryset = Asignacion.objects.all()
     serializer_class = AsignacionSerializer
+
+    @action(detail=False, methods=['post'])
+    def get_pendientes(self, request):
+        data = request.data
+        id_congregacion = data.get('id_congregacion')
+        queryset = Asignacion.objects.filter(
+            Q(territorio__congregacion=id_congregacion) & 
+            Q(fecha_fin__isnull=True)
+        )
+        serializer = AsignacionSerializer(queryset, many=True)
+        return Response(serializer.data)
