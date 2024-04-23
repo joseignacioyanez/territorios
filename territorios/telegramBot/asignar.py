@@ -18,6 +18,14 @@ from telegram.ext import (
     CallbackQueryHandler,
 )
 
+# Helper Function
+def formatear_fecha(fecha):
+    locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
+    date_object = datetime.datetime.fromisoformat(fecha)
+    fecha_formateada = date_object.strftime("%d de %B del %Y")
+    return fecha_formateada
+
+
 # Enable logging
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
@@ -26,106 +34,82 @@ logging.basicConfig(
 logging.getLogger("httpx").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
+
+# Constantes
 PUBLICADOR, VERIFICACION, TERRITORIO, METODO_ENVIO = range(4)
-
 CHAT_ID_ADMIN = 334575560
+BASE_URL_API = 'http://localhost:8000/api/'
 
-# Maneja /asignar . Empieza el proceso de asignación de territorios
+# FLUJO ASIGNAR - FASE 0
+# Maneja /asignar y envia Lista de Publicadores
 async def asignar(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     
-    #  Usar Vistas de la App de Django
-
     # Determinar ID de Usuario en base al ChatID de Telegram
     try:
-        url = 'http://localhost:8000/webTerritorios/usuario_telegram/'
-        myobj = {'telegram_chatid': update.message.chat_id}
-        usuario_telegram_response =  requests.post(url, json = myobj)
-        json_response = usuario_telegram_response.json()
-        user_id = json_response['user_id']
+        data = {'telegram_chatid': update.message.chat_id}
+        response =  requests.post( BASE_URL_API+'publicadores/buscar_telegram_chatid/', json = data).json()
+        context.user_data['user_asignador'] = response[0] # Guardar datos del Usuario en Contexto
     except:
-        await update.message.reply_text(
-            "No se reconoce este usuario. Por favor contacta a un administrador."
-        )
-        return ConversationHandler.END
-
-    # Determinar si el usuario tiene permisos de Administrador o Asignador
-    try:
-        url = 'http://localhost:8000/webTerritorios/usuario/'
-        myobj = {'user_id': user_id}
-        user_data_response =  requests.post(url, json = myobj)
-        user_data_json = user_data_response.json()
-        context.user_data['user_data'] = user_data_json
-    except:
-        await update.message.reply_text(
-            "Error al determinar permisos del Usuario. Por favor contacta a un administrador."
-        )
+        await update.message.reply_text("No se reconoce este usuario. Por favor contacta a un administrador.")
         return ConversationHandler.END
     
-    if 'administradores' or 'asignadores' in user_data_json['groups']:
-
+    grupos_usuario = context.user_data['user_asignador']['user']['groups']
+    
+    if 'administradores' or 'asignadores' in grupos_usuario:
         # Obtener Lista de Publicadores Activos de la misma Congregación
         try:
-            url = 'http://localhost:8000/webTerritorios/publicadores/'
-            myobj = {'user_id': user_id}
-            publicadores_response =  requests.post(url, json = myobj)
-            publicadores_json = publicadores_response.json()
+            data = {'congregacion_id': context.user_data['user_asignador']['congregacion']}
+            publicadores =  requests.post(BASE_URL_API+'publicadores/activos_de_congregacion/', json = data).json()
         except:
-            await update.message.reply_text(
-                "Error al obtener la lista de Publicadores. Por favor contacta a un administrador."
-            )
+            await update.message.reply_text("Error al obtener la lista de Publicadores. Por favor contacta a un administrador.")
             return ConversationHandler.END
     
+
+        # Generar Keyboard con boton por cada pulicador y enviar
         reply_keyboard = []
-        for publicador in publicadores_json:
+        for publicador in publicadores:
             reply_keyboard.append([str(publicador['id']) + ' - ' + publicador['nombre']])
 
+        nombre_usuario = context.user_data['user_asignador']['nombre']
         await update.message.reply_text(
-            f"🙋🏻¡Hola {user_data_json['nombre']}! Te ayudaré a asignar un territorio. "
+            f"🙋🏻¡Hola {nombre_usuario}! Te ayudaré a asignar un territorio. "
             "Envía /cancelar si deseas dejar de hablar conmigo.\n\n"
             "Escoge el Publicador al que deseas asignar el territorio:",
             reply_markup=ReplyKeyboardMarkup(
                 reply_keyboard, one_time_keyboard=True, input_field_placeholder="Escoge el Publicador..."
             ),
         )
-
         return PUBLICADOR
+    
     else:
-        await update.message.reply_text(
-            "No tienes permisos para asignar territorios. Por favor contacta a un administrador."
-        )
+        await update.message.reply_text("No tienes permisos para asignar territorios. Por favor contacta a un administrador.")
         return ConversationHandler.END
 
-    
-
+# FLUJO ASIGNAR - FASE 1
+# Guarda el Publicador, valida que no existan otras asignaciones y pregunta por el Territorio.
 async def publicador(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """Guarda el Publicador, valida que no existan otras asignaciones y pregunta por el Territorio."""
-    context.user_data['publicador_asignar_id'] = update.message.text.split(' - ')[0]
-    context.user_data['publicador_asignar_nombre'] = update.message.text.split(' - ')[1]
-    logger.info("Publicador a Asignar: %s", update.message.text)
+    context.user_data['user_asignado_id'] = update.message.text.split(' - ')[0]
+    context.user_data['user_asignado_nombre'] = update.message.text.split(' - ')[1]
 
-    # Averiguar si el usuario tiene Asignaciones Pendientes de entregar
+    # Verificar si el usuario tiene Asignaciones Pendientes de entregar
     try:
-        url = 'http://localhost:8000/webTerritorios/asignacion_pendiente/'
-        myobj = {'publicador_id': context.user_data['publicador_asignar_id']}
-        asignacion_pendiente_response =  requests.post(url, json = myobj)
-        asignacion_pendiente_json = asignacion_pendiente_response.json()
+        data = {'congregacion_id': context.user_data['user_asignador']['congregacion']}
+        asignaciones_pendientes =  requests.post(BASE_URL_API+'asignaciones/pendientes/', json = data).json()
     except:
-        await update.message.reply_text(
-            "Error al obtener la lista de Asignaciones. Por favor contacta a un administrador."
-        )
+        await update.message.reply_text("Error al obtener la lista de Asignaciones. Por favor contacta a un administrador.")
         return ConversationHandler.END
     
-    if asignacion_pendiente_json['asignacion_pendiente']:
-        locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
-        fecha_obj = datetime.datetime.fromisoformat(asignacion_pendiente_json['asignacion_data']['fecha_asignacion'][:-1])  # Eliminamos la 'Z' al final
-        fecha_formateada = fecha_obj.strftime("%d de %B del %Y")
+    tiene_asignaciones_pendientes = False
+    texto_asignaciones_pendientes = ""
+    for asignacion in asignaciones_pendientes:
+        if str(asignacion['publicador']) == str(context.user_data['user_asignado_id']):
+            tiene_asignaciones_pendientes = True
+            texto_asignaciones_pendientes += "*Territorio: *" + str(asignacion['territorio_numero']) + ' - ' + asignacion['territorio_nombre'] + '\n'
+            texto_asignaciones_pendientes += "*Fecha de Asignación: *" + formatear_fecha(asignacion['fecha_asignacion']) + '\n\n'
+
+    if tiene_asignaciones_pendientes:        
         await update.message.reply_text(
-f'''
-El Publicador seleccionado tiene una asignación pendiente. \n
-*Territorio:* {str(asignacion_pendiente_json['asignacion_data']['territorio_numero'])} - {asignacion_pendiente_json['asignacion_data']['territorio_nombre']}
-*Fecha de Asignación:*  {fecha_formateada} \n
-Por favor, recuérdale al Publicador e indica si deseas hacer la nueva asignación.
-''',
+            "El Publicador seleccionado tiene asignaciones pendientes: \n\n" + texto_asignaciones_pendientes + "Por favor, recuérdale al herman@ e indícame si deseas hacer la nueva asignación.",
             parse_mode='markdown',
             reply_markup=ReplyKeyboardMarkup(
                 [['¡Sí, hagámoslo!'], ['No, gracias']], one_time_keyboard=True, input_field_placeholder="¿Deseas asignar igual?"
@@ -138,34 +122,29 @@ Por favor, recuérdale al Publicador e indica si deseas hacer la nueva asignaci�
                 [['¡Sí, hagámoslo!'], ['No, gracias']], one_time_keyboard=True, input_field_placeholder="¿Deseas asignar?"
             ),
         )
-    
     return VERIFICACION
     
-
+# FLUJO ASIGNAR - FASE 2
+# Maneja la respuesta de Verificacion de Asignaciones Previas y Muestra Territorios Disponibles
 async def verificacion(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """Maneja la respuesta de Verificacion de Asignaciones Previas y Muestra Territorios Disponibles"""
     
     if update.message.text == 'No, gracias':
-        await update.message.reply_text(
-            "Está bien. Ten un buen día."
-        )
+        await update.message.reply_text("Está bien. Ten un buen día.")
         return ConversationHandler.END
     
     else:
-        
         # Obtener Lista de Territorios Disponibles
         try:
-            url = 'http://localhost:8000/webTerritorios/territorios_disponibles/'
-            myobj = {'id_congregacion': context.user_data['user_data']['congregacion_id']}
-            territorios_disponibles_response =  requests.post(url, json = myobj)
-            territorios_disponibles_json = territorios_disponibles_response.json()
+            data = {'congregacion_id': context.user_data['user_asignador']['congregacion']}
+            print(data)
+            territorios_disponibles =  requests.post(BASE_URL_API+'territorios/disponibles/', json = data).json()
 
             reply_keyboard = []
-            for territorio in territorios_disponibles_json['territorios']:
+            for territorio in territorios_disponibles:
                 reply_keyboard.append([str(territorio['numero']) + ' - ' + territorio['nombre']])
 
             # Guardar lista de Territorios en Contexto para acceder despues
-            context.user_data['territorios_disponibles'] = territorios_disponibles_json['territorios']            
+            context.user_data['territorios_disponibles'] = territorios_disponibles           
 
             await update.message.reply_text(
                 f"Escoge el Territorio que deseas asignar al Publicador:",
@@ -176,7 +155,8 @@ async def verificacion(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
 
             return TERRITORIO
         
-        except:
+        except Exception as e:
+            print(e)
             await update.message.reply_text(
                 "Error al obtener la lista de Territorios. Por favor contacta a un administrador."
             )

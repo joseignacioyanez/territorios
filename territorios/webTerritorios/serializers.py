@@ -1,5 +1,6 @@
 from .models import Congregacion, EstadoSordo, Territorio, Publicador, Sordo, Asignacion
 from rest_framework import serializers
+from django.contrib.auth.models import Group, User
 
 class CongregacionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -18,8 +19,20 @@ class TerritorioSerializer(serializers.ModelSerializer):
         model = Territorio
         fields = '__all__'
 
+class GroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Group
+        fields = ('id', 'name')
+
+class UserSerializer(serializers.ModelSerializer):
+    groups = GroupSerializer(many=True)
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'email', 'groups', 'is_staff', 'is_superuser')
+
 class PublicadorSerializer(serializers.ModelSerializer):
     congregacion_nombre = serializers.CharField(source='congregacion.nombre', read_only=True)
+    user = UserSerializer()
 
     class Meta:
         model = Publicador

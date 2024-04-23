@@ -14,7 +14,7 @@ from django.contrib.auth.views import LoginView
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import logout
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import action
@@ -92,99 +92,7 @@ class NewSordoForm(forms.ModelForm):
 
 # Vista para obtener datos del usuario en base a su ID
 # Usada en Bot de Telegram para validar permisos del Usuario en base a su grupos de permisos
-@csrf_exempt
-def datos_usuario_view(request):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            user_id = data.get('user_id')
-        except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON'}, status=400)
 
-        if not user_id:
-            return JsonResponse({'error': 'user_id not provided'}, status=400)
-
-        try:
-            user = User.objects.get(pk=user_id)
-        except User.DoesNotExist:
-            return JsonResponse({'error': 'User not found'}, status=404)
-
-        user_data = {
-            'id': user.id,
-            'username': user.username,
-            'nombre': user.publicador.nombre,
-            'groups': list(user.groups.values_list('name', flat=True)),
-            'telegram_chatid': user.publicador.telegram_chatid,
-            'congregacion_nombre': user.publicador.congregacion.nombre,
-            'congregacion_id': user.publicador.congregacion.id,
-        }
-
-        return JsonResponse(user_data)
-
-    else:
-        return JsonResponse({'error': 'Method not allowed'}, status=405)
-    
-@csrf_exempt
-def publicadores_activos_misma_congregacion_view(request):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            user_id = data.get('user_id')
-        except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON'}, status=400)
-
-        if not user_id:
-            return JsonResponse({'error': 'user_id not provided'}, status=400)
-
-        try:
-            user = User.objects.get(pk=user_id)
-        except User.DoesNotExist:
-            return JsonResponse({'error': 'User not found'}, status=404)
-
-        congregacion_id = user.publicador.congregacion.id
-        filtered_users = User.objects.filter(publicador__congregacion__id=congregacion_id, publicador__activo=True)
-
-        user_list = []
-        for user in filtered_users:
-            user_data = {
-                'id': user.id,
-                'username': user.username,
-                "nombre": user.publicador.nombre,
-                'groups': list(user.groups.values_list('name', flat=True)),
-                'chat_id': user.publicador.telegram_chatid,  
-                'congregacion_nombre': user.publicador.congregacion.nombre,
-                'congregacion_id': user.publicador.congregacion.id,
-            }
-            user_list.append(user_data)
-
-        return JsonResponse(user_list, safe=False)
-
-    else:
-        return JsonResponse({'error': 'Method not allowed'}, status=405)
-
-@csrf_exempt
-def get_usuario_por_chatid_view(request):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            telegram_chatid = data.get('telegram_chatid')
-        except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON'}, status=400)
-
-        if not telegram_chatid:
-            return JsonResponse({'error': 'telegram_chatid not provided'}, status=400)
-
-        try:
-            user = User.objects.get(publicador__telegram_chatid=telegram_chatid)
-        except User.DoesNotExist:
-            return JsonResponse({'error': 'User not found'}, status=404)
-
-        return JsonResponse({'user_id': user.id})
-
-    else:
-        return JsonResponse({'error': 'Method not allowed'}, status=405)
-
-        
 # API
 # Django REST Framework
 class CongregacionViewSet(viewsets.ModelViewSet):
@@ -202,20 +110,45 @@ class TerritorioViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'])
     def disponibles(self, request):
         data = request.data
-        id_congregacion = data.get('id_congregacion')
-        if id_congregacion is None:
+        congregacion_id = data.get('congregacion_id')
+        if congregacion_id is None:
             return Response({'error': 'No se proporcionó el ID de la congregación en la solicitud'}, status=400)
         else:
-            queryset = Territorio.objects.filter(
-                Q(congregacion=id_congregacion) & 
-                Q(asignaciones_de_este_territorio__fecha_fin__isnull=False) | Q(asignaciones_de_este_territorio__isnull=True)
+            queryset = Asignacion.objects.values('territorio').annotate(count=Count('id'))
+            print(queryset)
+            queryset = Territorio.objects.annotate(count=Count('id')).filter(
+                ((Q(congregacion=congregacion_id) & Q(asignaciones_de_este_territorio__fecha_fin__isnull=False))
+                | (Q(congregacion=congregacion_id) & Q(asignaciones_de_este_territorio__isnull=True)))
             )
+            print(queryset)
             serializer = TerritorioSerializer(queryset, many=True)
             return Response(serializer.data)
 
 class PublicadorViewSet(viewsets.ModelViewSet):
     queryset = Publicador.objects.all()
     serializer_class = PublicadorSerializer
+
+    @action(detail=False, methods=['post'])
+    def buscar_telegram_chatid(self, request):
+        data = request.data
+        telegram_chatid = data.get('telegram_chatid')
+        if telegram_chatid is None:
+            return Response({'error': 'No se proporcionó el chat_id en la solicitud'}, status=400)
+        else:
+            queryset = Publicador.objects.filter(telegram_chatid=telegram_chatid)
+            serializer = PublicadorSerializer(queryset, many=True)
+            return Response(serializer.data)
+        
+    @action(detail=False, methods=['post'])
+    def activos_de_congregacion(self, request):
+        data = request.data
+        id_congregacion = data.get('congregacion_id')
+        if id_congregacion is None:
+            return Response({'error': 'No se proporcionó el ID de la congregación en la solicitud'}, status=400)
+        else:
+            queryset = Publicador.objects.filter(congregacion=id_congregacion, activo=True)
+            serializer = PublicadorSerializer(queryset, many=True)
+            return Response(serializer.data)
 
 class SordoViewSet(viewsets.ModelViewSet):
     queryset = Sordo.objects.all()
@@ -228,7 +161,7 @@ class AsignacionViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'])
     def pendientes(self, request):
         data = request.data
-        id_congregacion = data.get('id_congregacion')
+        id_congregacion = data.get('congregacion_id')
         if id_congregacion is None:
             return Response({'error': 'No se proporcionó el ID de la congregación en la solicitud'}, status=400)
         else:

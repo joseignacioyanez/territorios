@@ -18,6 +18,7 @@ class SordoAdmin(admin.ModelAdmin):
             'direccion': forms.Textarea,
             }
         return super().get_form(request, obj, **kwargs)
+    
 
 # Manejar Publicador como extension de User
 class PublicadorInline(admin.StackedInline):
