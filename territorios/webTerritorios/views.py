@@ -1,5 +1,7 @@
 
+import json
 from django import forms
+from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse, reverse_lazy
 from django.utils.safestring import SafeString
@@ -11,9 +13,14 @@ from django.contrib.auth.views import LoginView
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import logout
+from django.contrib.auth.models import User
 from django.db.models import Q, Count
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import action
 from rest_framework.response import Response
+
+from .scripts.territorioPDFdigital import llenarTerritorioDigital
+from datetime import datetime
 
 
 class TerritoriosLoginView(LoginView):
@@ -163,3 +170,65 @@ class AsignacionViewSet(viewsets.ModelViewSet):
             )
             serializer = AsignacionSerializer(queryset, many=True)
             return Response(serializer.data)
+        
+def calcular_edad(anio_nacimiento):
+    if anio_nacimiento == 0:
+        return 0
+    else:
+        return datetime.date().year - anio_nacimiento
+
+@csrf_exempt
+def asignar_territorio(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            print(data)
+            publicador_id = data.get('publicador_id')
+            territorio_id = data.get('territorio_id')
+            metodo_entrega = data.get('metodo_entrega')
+
+            # Crear Asignacion
+            publicador = Publicador.objects.get(pk=publicador_id)
+            territorio = Territorio.objects.get(pk=territorio_id)
+            asignacion = Asignacion(
+                publicador=publicador,
+                territorio=territorio,
+            )
+            asignacion.save()
+            print("Asignacion Creada")
+            print(asignacion)
+
+            # Obtener Datos
+            sordos = Sordo.objects.filter(territorio=territorio)
+
+            territorio_nombre = territorio.nombre
+            texto1 = sordos[0].nombre + " - " + calcular_edad(sordos[0].anio_nacimiento) + ' años\n' + sordos[0].direccion + '\n' + sordos[0].detalles_direccion
+            texto2 = sordos[1].nombre + " - " + calcular_edad(sordos[1].anio_nacimiento) + ' años\n' + sordos[1].direccion + '\n' + sordos[1].detalles_direccion
+            texto3 = sordos[2].nombre + " - " + calcular_edad(sordos[2].anio_nacimiento) + ' años\n' + sordos[2].direccion + '\n' + sordos[2].detalles_direccion
+            texto4 = sordos[3].nombre + " - " + calcular_edad(sordos[3].anio_nacimiento) + ' años\n' + sordos[3].direccion + '\n' + sordos[3].detalles_direccion
+            texto5 = sordos[4].nombre + " - " + calcular_edad(sordos[4].anio_nacimiento) + ' años\n' + sordos[4].direccion + '\n' + sordos[4].detalles_direccion
+            gps1 = sordos[0].gps_latitud + ',' + sordos[0].gps_longitud
+            gps2 = sordos[1].gps_latitud + ',' + sordos[1].gps_longitud
+            gps3 = sordos[2].gps_latitud + ',' + sordos[2].gps_longitud
+            gps4 = sordos[3].gps_latitud + ',' + sordos[3].gps_longitud
+            gps5 = sordos[4].gps_latitud + ',' + sordos[4].gps_longitud
+            id_sordo1 = sordos[0].id
+            id_sordo2 = sordos[1].id
+            id_sordo3 = sordos[2].id
+            id_sordo4 = sordos[3].id
+            id_sordo5 = sordos[4].id
+            id_asignacion = asignacion.id
+
+            # Llenar y Enviar Territorio
+            if metodo_entrega =='digital_publicador' | metodo_entrega == 'digital_asignador':
+                llenarTerritorioDigital(texto1, texto2, texto3, texto4, texto5, territorio_nombre, gps1, gps2, gps3, gps4, gps5, id_sordo1, id_sordo2, id_sordo3, id_sordo4, id_sordo5, id_asignacion)
+                pass
+            elif metodo_entrega == 'imprimir':
+                pass
+
+            return JsonResponse({'message': 'Asignación creada exitosamente'}, status=200)
+        except Exception as e:
+            print(e)
+            return JsonResponse({'error': str(e)}, status=500)
+    else:
+        return JsonResponse({'error': 'Método no permitido'}, status=405)

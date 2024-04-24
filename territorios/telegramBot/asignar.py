@@ -190,7 +190,14 @@ async def metodo_envio(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
     context.user_data['metodo_envio'] = update.message.text
 
     if context.user_data['metodo_envio'] == 'Enviar al Telegram del herman@':
-        #TODO
+        data = {
+            'publicador_id': context.user_data['user_asignado_id'],
+            'territorio_id': context.user_data['territorio_asignar_id'],
+            'metodo_entrega': 'digital_publicador'
+            }
+        print(data)
+        response =  requests.post('http://localhost:8000/webTerritorios/asignar_territorio/', json = data)
+        print(response)
         pass
     elif context.user_data['metodo_envio'] == 'Registrar asignación y Enviarme el PDF digital por aquí':
         #TODO
@@ -203,7 +210,7 @@ async def metodo_envio(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
         return ConversationHandler.END
     
     await update.message.reply_text(
-        f"¡Excelente! \n {context.user_data['territorio_asignar_numero_nombre']} se asignó a {context.user_data['user_asignado_nombre']}. \n ¡Gracias por tu ayuda!", reply_markup=ReplyKeyboardRemove()
+        f"¡Excelente! \n {context.user_data['territorio_asignar_numero_nombre']} se asignó a {context.user_data['user_asignado_nombre']}. \n ¡Gracias por tu ayuda! \n {response}", reply_markup=ReplyKeyboardRemove()
     )
     return ConversationHandler.END
 
