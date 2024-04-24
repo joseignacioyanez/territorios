@@ -1,8 +1,5 @@
 
-import datetime
-import json
 from django import forms
-from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse, reverse_lazy
 from django.utils.safestring import SafeString
@@ -15,8 +12,6 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import logout
 from django.db.models import Q, Count
-from django.contrib.auth.models import User
-from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -114,13 +109,10 @@ class TerritorioViewSet(viewsets.ModelViewSet):
         if congregacion_id is None:
             return Response({'error': 'No se proporcionó el ID de la congregación en la solicitud'}, status=400)
         else:
-            queryset = Asignacion.objects.values('territorio').annotate(count=Count('id'))
-            print(queryset)
-            queryset = Territorio.objects.annotate(count=Count('id')).filter(
-                ((Q(congregacion=congregacion_id) & Q(asignaciones_de_este_territorio__fecha_fin__isnull=False))
-                | (Q(congregacion=congregacion_id) & Q(asignaciones_de_este_territorio__isnull=True)))
-            )
-            print(queryset)
+            queryset = Territorio.objects.filter(
+                (Q(congregacion=congregacion_id) & Q(asignaciones_de_este_territorio__fecha_fin__isnull=False))
+                |(Q(congregacion=congregacion_id) & Q(asignaciones_de_este_territorio__isnull=True))
+                ).annotate(count=Count('asignaciones_de_este_territorio')).order_by('numero')
             serializer = TerritorioSerializer(queryset, many=True)
             return Response(serializer.data)
 

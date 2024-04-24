@@ -1,6 +1,3 @@
-"""
-
-"""
 
 import datetime
 import locale
@@ -55,7 +52,7 @@ async def asignar(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     
     grupos_usuario = context.user_data['user_asignador']['user']['groups']
     
-    if 'administradores' or 'asignadores' in grupos_usuario:
+    if any(grupo.get('name') in ['administradores', 'asignadores'] for grupo in grupos_usuario):
         # Obtener Lista de Publicadores Activos de la misma Congregación
         try:
             data = {'congregacion_id': context.user_data['user_asignador']['congregacion']}
@@ -86,7 +83,7 @@ async def asignar(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         return ConversationHandler.END
 
 # FLUJO ASIGNAR - FASE 1
-# Guarda el Publicador, valida que no existan otras asignaciones y pregunta por el Territorio.
+# Guarda el Publicador, valida que no existan otras asignaciones
 async def publicador(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     context.user_data['user_asignado_id'] = update.message.text.split(' - ')[0]
     context.user_data['user_asignado_nombre'] = update.message.text.split(' - ')[1]
@@ -136,7 +133,6 @@ async def verificacion(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
         # Obtener Lista de Territorios Disponibles
         try:
             data = {'congregacion_id': context.user_data['user_asignador']['congregacion']}
-            print(data)
             territorios_disponibles =  requests.post(BASE_URL_API+'territorios/disponibles/', json = data).json()
 
             reply_keyboard = []
@@ -149,22 +145,19 @@ async def verificacion(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
             await update.message.reply_text(
                 f"Escoge el Territorio que deseas asignar al Publicador:",
                 reply_markup=ReplyKeyboardMarkup(
-                    reply_keyboard, one_time_keyboard=True, input_field_placeholder="Escoge el Territorio..."
+                reply_keyboard, one_time_keyboard=True, input_field_placeholder="Escoge el Territorio..."
                 ),
             )
 
             return TERRITORIO
         
         except Exception as e:
-            print(e)
-            await update.message.reply_text(
-                "Error al obtener la lista de Territorios. Por favor contacta a un administrador."
-            )
+            await update.message.reply_text("Error al obtener la lista de Territorios. Por favor contacta a un administrador.")
             return ConversationHandler.END
 
-
+# FLUJO ASIGNAR - FASE 3
+# Guarda el Territorio y pregunta por el Método de Entrega
 async def territorio(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """Guarda el Territorio y pregunta por el Método de Entrega."""
 
     territorio_numero_deseado = update.message.text.split(' - ')[0]
     territorio_nombre_deseado = update.message.text.split(' - ')[1]
@@ -183,15 +176,16 @@ f'''
             parse_mode='markdown',
             reply_markup=ReplyKeyboardMarkup(
                 [['Enviar al Telegram del herman@'], 
-                    ['Registrar asignación y Enviarme el PDF digital por aquí'], 
-                    ['Registrar asignación y Enviarme el PDF para Imprimir por aquí']], one_time_keyboard=True, input_field_placeholder="¿Cómo entregar?"
+                ['Registrar asignación y Enviarme el PDF digital por aquí'], 
+                ['Registrar asignación y Enviarme el PDF para Imprimir por aquí']], one_time_keyboard=True, input_field_placeholder="¿Cómo entregar?"
             ),
         )
         
     return METODO_ENVIO
 
+# FLUJO ASIGNAR - FASE 4
+# Guarda el Método de Entrega y finaliza la asignación
 async def metodo_envio(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """Guarda el Método de Entrega y finaliza la asignación."""
 
     context.user_data['metodo_envio'] = update.message.text
 
@@ -205,62 +199,47 @@ async def metodo_envio(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
         #TODO
         pass
     else:
-        await update.message.reply_text(
-            "No se reconoce el método de entrega. Por favor contacta a un administrador."
-        )
+        await update.message.reply_text("No se reconoce el método de entrega. Por favor contacta a un administrador.")
         return ConversationHandler.END
     
     await update.message.reply_text(
-        f"¡Excelente! \n {context.user_data['territorio_asignar_numero_nombre']} se asignó a {context.user_data['publicador_asignar_nombre']}. \n ¡Gracias por tu ayuda!", reply_markup=ReplyKeyboardRemove()
+        f"¡Excelente! \n {context.user_data['territorio_asignar_numero_nombre']} se asignó a {context.user_data['user_asignado_nombre']}. \n ¡Gracias por tu ayuda!", reply_markup=ReplyKeyboardRemove()
     )
-
     return ConversationHandler.END
 
+# FLUJO ASIGNAR - FALLBACK CANCELAR
+# Cancela la conversación
 async def cancelar(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """Cancela y finaliza la conversación."""
     user = update.message.from_user
     logger.info("User %s canceled the conversation.", user.first_name)
-    await update.message.reply_text(
-        "Adiós! Espero volvamos a conversar.", reply_markup=ReplyKeyboardRemove()
-    )
-
+    await update.message.reply_text("Adiós! Espero volvamos a conversar.", reply_markup=ReplyKeyboardRemove())
     return ConversationHandler.END
 
+
+# Flujo Reporte de Asignaciones Pendientes para Administradores
 async def reporte_asignaciones(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     try:
         # Determinar ID de Usuario en base al ChatID de Telegram
-        url = 'http://localhost:8000/webTerritorios/usuario_telegram/'
-        myobj = {'telegram_chatid': update.message.chat_id}
-        usuario_telegram_response =  requests.post(url, json = myobj)
-        json_response = usuario_telegram_response.json()
-        user_id = json_response['user_id']
+        data = {'telegram_chatid': update.message.chat_id}
+        usuario =  requests.post(BASE_URL_API+'publicadores/buscar_telegram_chatid/', json = data).json()[0]
+        context.user_data['user_data'] = usuario
+        grupos_usuario = usuario['user']['groups']
         
-        # Determinar si el usuario tiene permisos de Administrador o Asignador
-        url = 'http://localhost:8000/webTerritorios/usuario/'
-        myobj = {'user_id': user_id}
-        user_data_response =  requests.post(url, json = myobj)
-        user_data_json = user_data_response.json()
-        context.user_data['user_data'] = user_data_json
-
-        if 'administradores' in user_data_json['groups']:
-            
+        if any(grupo.get('name') == 'administradores' for grupo in grupos_usuario):
             # Obtener Lista de Asignaciones Pendientes
-            url = 'http://localhost:8000/webTerritorios/asignaciones_pendientes/'
-            myobj = {'id_congregacion': user_data_json['congregacion_id']}
-            asignaciones_pendientes_response =  requests.post(url, json = myobj)
-            asignaciones_pendientes_json = asignaciones_pendientes_response.json()
+            data = {'congregacion_id': usuario['congregacion']}
+            asignaciones_pendientes =  requests.post(BASE_URL_API+'asignaciones/pendientes/', json = data).json()
 
+            # Generar Keyboard con boton por cada asignacion
             encabezado = "📋 *Asignaciones Pendientes* \n\n"
-
             keyboard = []
-
-            for asignacion in asignaciones_pendientes_json['asignaciones']:
+            for asignacion in asignaciones_pendientes:
                 territorio = str(asignacion['territorio_numero']) + '-' + asignacion['territorio_nombre']
                 publicador = asignacion['publicador_nombre']
 
                 current_date = datetime.datetime.now().date()
-                given_date = datetime.datetime.fromisoformat(asignacion['fecha_asignacion'][:-1]).date()
+                given_date = datetime.datetime.fromisoformat(asignacion['fecha_asignacion']).date()
                 days_since_date = (current_date - given_date).days
                 
                 boton_asignacion = ""
@@ -294,27 +273,18 @@ async def reporte_asignaciones(update: Update, context: ContextTypes.DEFAULT_TYP
                 parse_mode='markdown'
             )
         else:
-            await update.message.reply_text(
-                "No tienes permisos para ver este reporte. Por favor contacta a un administrador."
-            )
+            await update.message.reply_text("No tienes permisos para ver este reporte. Por favor contacta a un administrador.")
             return ConversationHandler.END
 
     except Exception as e:
         print(e)
-        await update.message.reply_text(
-            "No se reconoce este usuario. Por favor contacta a un administrador."
-        )
+        await update.message.reply_text("No se reconoce este usuario. Por favor contacta a un administrador.")
         return ConversationHandler.END
 
+# Manejar Callbacks de Botones Inline
 async def inline_button_asignaciones(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Parses the CallbackQuery and updates the message text."""
     query = update.callback_query
-
-    # CallbackQueries need to be answered, even if no notification to the user is needed
-    # Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
     await query.answer()
-
-    print(query.data)
 
     timestamp = query.data.split(';')[0]
     flag_proceso = query.data.split(';')[1]
@@ -324,24 +294,53 @@ async def inline_button_asignaciones(update: Update, context: ContextTypes.DEFAU
     if int(time.time()) - int(timestamp) > 300:
         pass
     else:
+
+        # DETALLE DE ASIGNACION
         if flag_proceso == "reporte_asignacion":
             # Obtener detalles de asignacion
-            url = 'http://localhost:8000/webTerritorios/asignacion_detalles/'
-            myobj = {'id_asignacion': dato}
-            asignacion_detalles_response =  requests.post(url, json = myobj)
-            asignacion_detalles_json = asignacion_detalles_response.json()['asignacion']
-
-            print(asignacion_detalles_json)
+            asignacion_detalles =  requests.get(BASE_URL_API + 'asignaciones/' + dato).json()
 
             # Devolver botones para Borrar y Entregar Asignacion
             timestamp_now = str(int(time.time()))
             keyboard = [
-                [InlineKeyboardButton("🗑️ Borrar", callback_data=f"{timestamp_now};borrar_asignacion;{dato}")],
-                [InlineKeyboardButton("✅ Entregar", callback_data=f"{timestamp_now};entregar_asignacion;{dato}")]
+                [InlineKeyboardButton("🗑️ Borrar", callback_data=f"{timestamp_now};borrar_asignacion;{dato}"),
+                InlineKeyboardButton("✅ Entregar", callback_data=f"{timestamp_now};entregar_asignacion;{dato}")]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
-            await query.message.reply_text(text=f"📋 Asignacion: {asignacion_detalles_json['id']}: {asignacion_detalles_json['territorio_numero']} - {asignacion_detalles_json['territorio_nombre']} -> {asignacion_detalles_json['publicador_nombre']}", reply_markup=reply_markup)
 
+            # Descripcion de la Asignacion
+            descripcion = f'''
+📋 *Asignacion* \n
+*id:* {asignacion_detalles['id']}
+*Territorio:* {asignacion_detalles['territorio_numero']} - {asignacion_detalles['territorio_nombre']}
+*Publicador:* {asignacion_detalles['publicador_nombre']}
+*Fecha de Asignacion:* {formatear_fecha(asignacion_detalles['fecha_asignacion'])}
+'''             
+            await query.message.reply_text(text=descripcion, reply_markup=reply_markup, parse_mode='markdown')
+        
+        # BORRAR ASIGNACION
+        elif flag_proceso == "borrar_asignacion":
+            response = requests.delete(BASE_URL_API + f'asignaciones/{dato}/')
+            if response.status_code == 204:
+                response = "Asignacion Borrada Exitosamente. 🚮"
+            else:
+                response = f"Error al Borrar Asignacion. Status Code: {response.status_code}."
+            await query.message.reply_text(text=response)
+            await query.message.delete()
+        
+        # ENTREGAR ASIGNACION
+        elif flag_proceso == "entregar_asignacion":
+            asignacion = requests.get(BASE_URL_API + f'asignaciones/{dato}').json()
+            asignacion['fecha_fin'] = datetime.datetime.now().isoformat()
+            response = requests.put(BASE_URL_API + f'asignaciones/{dato}/', json=asignacion)
+            if response.status_code == 200:
+                response = "Asignacion Entregada Exitosamente. 🥳"
+            else:
+                response = f"Error al Entregar Asignacion. Status Code: {response.status_code}."
+            await query.message.reply_text(text=response)
+
+# COMANDO START
+# Usado en las urls de los botones de los territorios
 async def start (update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Comando /start sin argumentos - Ignorar
     if not context.args:
@@ -363,7 +362,7 @@ async def start (update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Gracias por entregar el territorio XXX !")
         await context.bot.send_message(chat_id=CHAT_ID_ADMIN, text=f"🥳 Entrega - {id_asignacion} --- {update.effective_user.username} - {update.effective_chat.id}")
 
-
+# RESTO DE MENSAJES - REENVIO A ADMIN
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Ignorar mensajes del Administrador    
     if update.effective_chat.id == CHAT_ID_ADMIN:
@@ -404,10 +403,9 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def main() -> None:
     """Run the bot."""
-    # Create the Application and pass it your bot's token.
+    # Crear Aplicacion con Token
     application = Application.builder().token("5937302183:AAHxqvoy9UjAIVIMlDUp6J7ny6y3D8X9brw").build()
 
-    # Add conversation handler with the states GENDER, PHOTO, LOCATION and BIO
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler("asignar", asignar)],
         states={
@@ -426,7 +424,7 @@ def main() -> None:
     application.add_handler(CommandHandler("start", start))
     application.add_handler(MessageHandler( filters.ALL, echo))
 
-    # Run the bot until the user presses Ctrl-C
+    # Correr hasta Ctrl + C
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 
