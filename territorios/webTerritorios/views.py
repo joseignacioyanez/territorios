@@ -1,11 +1,16 @@
 
 import json
+import os
+import threading
+import tracemalloc
 from django import forms
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse, reverse_lazy
 from django.utils.safestring import SafeString
 from django.views import View
+
+from .scripts.helperFunctionsTelegram import enviar_documento
 from .models import Asignacion, Sordo, Publicador, Territorio, Congregacion, EstadoSordo
 from .serializers import CongregacionSerializer, EstadoSordoSerializer, TerritorioSerializer, PublicadorSerializer, SordoSerializer, AsignacionSerializer
 from rest_framework import viewsets
@@ -20,7 +25,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from .scripts.territorioPDFdigital import llenarTerritorioDigital
-from datetime import datetime
+import datetime
 
 
 class TerritoriosLoginView(LoginView):
@@ -172,10 +177,13 @@ class AsignacionViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
         
 def calcular_edad(anio_nacimiento):
-    if anio_nacimiento == 0:
+    if anio_nacimiento is None:
         return 0
     else:
-        return datetime.date().year - anio_nacimiento
+        
+        return datetime.date.today().year - anio_nacimiento
+
+from asgiref.sync import sync_to_async
 
 @csrf_exempt
 def asignar_territorio(request):
@@ -200,29 +208,54 @@ def asignar_territorio(request):
 
             # Obtener Datos
             sordos = Sordo.objects.filter(territorio=territorio)
-
+            print(sordos)
             territorio_nombre = territorio.nombre
-            texto1 = sordos[0].nombre + " - " + calcular_edad(sordos[0].anio_nacimiento) + ' años\n' + sordos[0].direccion + '\n' + sordos[0].detalles_direccion
-            texto2 = sordos[1].nombre + " - " + calcular_edad(sordos[1].anio_nacimiento) + ' años\n' + sordos[1].direccion + '\n' + sordos[1].detalles_direccion
-            texto3 = sordos[2].nombre + " - " + calcular_edad(sordos[2].anio_nacimiento) + ' años\n' + sordos[2].direccion + '\n' + sordos[2].detalles_direccion
-            texto4 = sordos[3].nombre + " - " + calcular_edad(sordos[3].anio_nacimiento) + ' años\n' + sordos[3].direccion + '\n' + sordos[3].detalles_direccion
-            texto5 = sordos[4].nombre + " - " + calcular_edad(sordos[4].anio_nacimiento) + ' años\n' + sordos[4].direccion + '\n' + sordos[4].detalles_direccion
-            gps1 = sordos[0].gps_latitud + ',' + sordos[0].gps_longitud
-            gps2 = sordos[1].gps_latitud + ',' + sordos[1].gps_longitud
-            gps3 = sordos[2].gps_latitud + ',' + sordos[2].gps_longitud
-            gps4 = sordos[3].gps_latitud + ',' + sordos[3].gps_longitud
-            gps5 = sordos[4].gps_latitud + ',' + sordos[4].gps_longitud
-            id_sordo1 = sordos[0].id
-            id_sordo2 = sordos[1].id
-            id_sordo3 = sordos[2].id
-            id_sordo4 = sordos[3].id
-            id_sordo5 = sordos[4].id
             id_asignacion = asignacion.id
 
+            # Initialize variables
+            texto1 = texto2 = texto3 = texto4 = texto5 = gps1 = gps2 = gps3 = gps4 = gps5 = id_sordo1 = id_sordo2 = id_sordo3 = id_sordo4 = id_sordo5 = ''
+
+            # Check if sordos list has items
+            if sordos:
+                # Assign values if sordos list has items
+                if len(sordos) > 0:
+                    texto1 = sordos[0].nombre + " - " + str(calcular_edad(sordos[0].anio_nacimiento)) + ' años : ' + sordos[0].direccion + '\n' + sordos[0].detalles_direccion
+                    gps1 = str(sordos[0].gps_latitud) + ',' + str(sordos[0].gps_longitud)
+                    id_sordo1 = sordos[0].id
+                if len(sordos) > 1:
+                    texto2 = sordos[1].nombre + " - " + str(calcular_edad(sordos[1].anio_nacimiento)) + ' años : '  + sordos[1].direccion + '\n' + sordos[1].detalles_direccion
+                    gps2 = str(sordos[1].gps_latitud) + ',' + str(sordos[1].gps_longitud)
+                    id_sordo2 = sordos[1].id
+                if len(sordos) > 2:
+                    texto3 = sordos[2].nombre + " - " + str(calcular_edad(sordos[2].anio_nacimiento)) + ' años : ' + sordos[2].direccion + '\n' + sordos[2].detalles_direccion
+                    gps3 = str(sordos[2].gps_latitud) + ',' + str(sordos[2].gps_longitud)
+                    id_sordo3 = sordos[2].id
+                if len(sordos) > 3:
+                    texto4 = sordos[3].nombre + " - " + str(calcular_edad(sordos[3].anio_nacimiento)) + ' años : ' + sordos[3].direccion + '\n' + sordos[3].detalles_direccion
+                    gps4 = str(sordos[3].gps_latitud) + ',' + str(sordos[3].gps_longitud)
+                    id_sordo4 = sordos[3].id
+                if len(sordos) > 4:
+                    texto5 = sordos[4].nombre + " - " + str(calcular_edad(sordos[4].anio_nacimiento)) + ' años : ' + sordos[4].direccion + '\n' + sordos[4].detalles_direccion
+                    gps5 = str(sordos[4].gps_latitud) + ',' + str(sordos[4].gps_longitud)
+                    id_sordo5 = sordos[4].id
+
+            script_dir = os.path.dirname(__file__)
+            template = "scripts/recursos/plantillaDigitalNuevosBotones.pdf"
+            boton1 = "scripts/recursos/botonGoogle.png"
+            boton2 = "scripts/recursos/botonOsmand.png"
+            boton_reportar = "scripts/recursos/botonReportar.png"
+            boton_entregar = "scripts/recursos/botonTerminar.png"
+            template = os.path.join(script_dir, template)
+            boton1 = os.path.join(script_dir, boton1)
+            boton2 = os.path.join(script_dir, boton2)
+            boton_reportar = os.path.join(script_dir, boton_reportar)
+            boton_entregar = os.path.join(script_dir, boton_entregar)
+
             # Llenar y Enviar Territorio
-            if metodo_entrega =='digital_publicador' | metodo_entrega == 'digital_asignador':
-                llenarTerritorioDigital(texto1, texto2, texto3, texto4, texto5, territorio_nombre, gps1, gps2, gps3, gps4, gps5, id_sordo1, id_sordo2, id_sordo3, id_sordo4, id_sordo5, id_asignacion)
-                pass
+            if metodo_entrega =='digital_publicador' or metodo_entrega == 'digital_asignador':
+                file_path = llenarTerritorioDigital(texto1, texto2, texto3, texto4, texto5, territorio_nombre, gps1, gps2, gps3, gps4, gps5, id_sordo1, id_sordo2, id_sordo3, id_sordo4, id_sordo5, id_asignacion, template, boton1, boton2, boton_reportar, boton_entregar)
+                return JsonResponse({'message': 'Asignación creada exitosamente', 'file_path': file_path}, status=200)
+                
             elif metodo_entrega == 'imprimir':
                 pass
 

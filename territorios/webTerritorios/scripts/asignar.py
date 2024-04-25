@@ -2,6 +2,7 @@
 import datetime
 import locale
 import logging
+import os
 import time
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update, InlineKeyboardButton, InlineKeyboardMarkup
 import requests
@@ -198,6 +199,13 @@ async def metodo_envio(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
         print(data)
         response =  requests.post('http://localhost:8000/webTerritorios/asignar_territorio/', json = data)
         print(response)
+        response = response.json()
+        file = response.get('file_path')
+        # Send the document
+        with open(file, 'rb') as document_file:
+            await update.message.reply_document(document=document_file, caption='*Territorios*')
+        # Cleanup
+        os.remove(file)
         pass
     elif context.user_data['metodo_envio'] == 'Registrar asignación y Enviarme el PDF digital por aquí':
         #TODO
@@ -372,9 +380,9 @@ async def start (update: Update, context: ContextTypes.DEFAULT_TYPE):
 # RESTO DE MENSAJES - REENVIO A ADMIN
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Ignorar mensajes del Administrador    
-    if update.effective_chat.id == CHAT_ID_ADMIN:
-        pass
-    else:
+    #if update.effective_chat.id == CHAT_ID_ADMIN:
+    #    pass
+    #else:
         # Verificar Tipos de Mensajes
         if update.message.location:
             await context.bot.send_message(chat_id=CHAT_ID_ADMIN, text=f"💬 {update.effective_user.username} - {update.effective_chat.id} - 📍 Ubicación")
@@ -406,7 +414,6 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else:
             await context.bot.send_message(chat_id=CHAT_ID_ADMIN, text=f"💬 {update.effective_user.username} - {update.effective_chat.id} - 🤷‍♂️ No se pudo identificar el tipo de mensaje")
             await context.bot.send_message(chat_id=CHAT_ID_ADMIN, text=update)
-
 
 def main() -> None:
     """Run the bot."""
