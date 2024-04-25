@@ -499,9 +499,9 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         nombre_usuario = update.effective_user.username
     
     # Ignorar mensajes del Administrador    
-    #if update.effective_chat.id == CHAT_ID_ADMIN:
-    #    pass
-    #else:
+    if update.effective_chat.id == CHAT_ID_ADMIN:
+        pass
+    else:
         # Verificar Tipos de Mensajes
         if update.message.location:
             await context.bot.send_message(chat_id=CHAT_ID_ADMIN, text=f"💬 {nombre_usuario} - {update.effective_chat.id} - 📍 Ubicación")
