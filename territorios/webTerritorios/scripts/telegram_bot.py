@@ -530,6 +530,10 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
             caption = update.message.caption
             await context.bot.send_message(chat_id=CHAT_ID_ADMIN, text=f"💬 {nombre_usuario} - {update.effective_chat.id} - 🎥 Video")
             await context.bot.send_video(chat_id=CHAT_ID_ADMIN, video=file_id, caption=caption)
+        elif update.message.video_note:
+            file_id = update.message.video_note.file_id
+            await context.bot.send_message(chat_id=CHAT_ID_ADMIN, text=f"💬 {nombre_usuario} - {update.effective_chat.id} - 🎥 Video Note")
+            await context.bot.send_video_note(chat_id=CHAT_ID_ADMIN, video_note=file_id)
         elif update.message.sticker:
             file_id = update.message.sticker.file_id
             await context.bot.send_message(chat_id=CHAT_ID_ADMIN, text=f"💬 {nombre_usuario} - {update.effective_chat.id} - 🎨 Sticker")

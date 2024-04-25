@@ -25,6 +25,84 @@ from .scripts.territorioPDFimpreso import llenarTerritorioImpreso
 
 import datetime
 
+# No vista, Funcion de ayuda
+def preparar_y_generar_territorio(publicador_id, territorio_id, metodo_entrega, solo_pdf):
+
+    publicador = Publicador.objects.get(pk=publicador_id)
+    territorio = Territorio.objects.get(pk=territorio_id)
+    
+    # Si es asignacion nueva, guardar en BD
+    if not solo_pdf:
+        asignacion = Asignacion(
+            publicador=publicador,
+            territorio=territorio,
+        )
+        asignacion.save()
+    
+    # Generar PDF Territorio
+    # Obtener Datos
+    sordos = Sordo.objects.filter(territorio=territorio)
+    territorio_nombre = str(territorio.numero) + ' - ' +  territorio.nombre
+    id_asignacion = asignacion.id
+
+    # Initialize variables
+    texto1 = texto2 = texto3 = texto4 = texto5 = gps1 = gps2 = gps3 = gps4 = gps5 = id_sordo1 = id_sordo2 = id_sordo3 = id_sordo4 = id_sordo5 = ''
+
+    # Check if sordos list has items
+    if sordos:
+        # Assign values if sordos list has items
+        if len(sordos) > 0:
+            texto1 = sordos[0].nombre + " - " + str(calcular_edad(sordos[0].anio_nacimiento)) + ' años : ' + sordos[0].direccion + '\n' + sordos[0].detalles_direccion
+            gps1 = str(sordos[0].gps_latitud) + ',' + str(sordos[0].gps_longitud)
+            id_sordo1 = sordos[0].codigo
+        if len(sordos) > 1:
+            texto2 = sordos[1].nombre + " - " + str(calcular_edad(sordos[1].anio_nacimiento)) + ' años : '  + sordos[1].direccion + '\n' + sordos[1].detalles_direccion
+            gps2 = str(sordos[1].gps_latitud) + ',' + str(sordos[1].gps_longitud)
+            id_sordo2 = sordos[1].codigo
+        if len(sordos) > 2:
+            texto3 = sordos[2].nombre + " - " + str(calcular_edad(sordos[2].anio_nacimiento)) + ' años : ' + sordos[2].direccion + '\n' + sordos[2].detalles_direccion
+            gps3 = str(sordos[2].gps_latitud) + ',' + str(sordos[2].gps_longitud)
+            id_sordo3 = sordos[2].codigo
+        if len(sordos) > 3:
+            texto4 = sordos[3].nombre + " - " + str(calcular_edad(sordos[3].anio_nacimiento)) + ' años : ' + sordos[3].direccion + '\n' + sordos[3].detalles_direccion
+            gps4 = str(sordos[3].gps_latitud) + ',' + str(sordos[3].gps_longitud)
+            id_sordo4 = sordos[3].codigo
+        if len(sordos) > 4:
+            texto5 = sordos[4].nombre + " - " + str(calcular_edad(sordos[4].anio_nacimiento)) + ' años : ' + sordos[4].direccion + '\n' + sordos[4].detalles_direccion
+            gps5 = str(sordos[4].gps_latitud) + ',' + str(sordos[4].gps_longitud)
+            id_sordo5 = sordos[4].codigo
+
+    # Obtener Path Completo de los archivos para qur funcione correctamente el script de generacion
+    script_dir = os.path.dirname(__file__)
+    template = "scripts/recursos/plantillaDigitalNuevosBotones.pdf"
+    template_impreso = "scripts/recursos/plantillaVaciaImprimir.pdf"
+    boton1 = "scripts/recursos/botonGoogle.png"
+    boton2 = "scripts/recursos/botonOsmand.png"
+    boton_reportar = "scripts/recursos/botonReportar.png"
+    boton_entregar = "scripts/recursos/botonTerminar.png"
+    template = os.path.join(script_dir, template)
+    template_impreso = os.path.join(script_dir, template_impreso)
+    boton1 = os.path.join(script_dir, boton1)
+    boton2 = os.path.join(script_dir, boton2)
+    boton_reportar = os.path.join(script_dir, boton_reportar)
+    boton_entregar = os.path.join(script_dir, boton_entregar)
+
+    # Llenar y Enviar Path del Archivo de Territorio
+    if metodo_entrega =='digital_publicador' or metodo_entrega == 'digital_asignador':
+        file_path = llenarTerritorioDigital(texto1, texto2, texto3, texto4, texto5, territorio_nombre, gps1, gps2, gps3, gps4, gps5, id_sordo1, id_sordo2, id_sordo3, id_sordo4, id_sordo5, id_asignacion, template, boton1, boton2, boton_reportar, boton_entregar)        
+    elif metodo_entrega == 'impreso_asignador':
+        file_path = llenarTerritorioImpreso(texto1, texto2, texto3, texto4, texto5, territorio_nombre, gps1, gps2, gps3, gps4, gps5, id_sordo1, id_sordo2, id_sordo3, id_sordo4, id_sordo5, template_impreso)
+
+    return file_path
+
+
+def calcular_edad(anio_nacimiento):
+    if anio_nacimiento is None:
+        return 0
+    else:
+        return datetime.date.today().year - anio_nacimiento
+    
+# Views de Django
 
 class TerritoriosLoginView(LoginView):
     redirect_authenticated_user = True
@@ -64,8 +142,12 @@ class AsignarView(LoginRequiredMixin, View):
         })
     
     def post(self, request):
+
+        print(request.POST.get('territorio'))
+        print(request.POST.get('publicador'))
+
         if request.POST.get('enviarTelegram'):
-            print("Enviar Telegram")
+            
             pass
         elif request.POST.get('registrarPDFdigital'):
             print("Registrar PDF Digital")
@@ -188,83 +270,26 @@ class AsignacionViewSet(viewsets.ModelViewSet):
             serializer = AsignacionSerializer(queryset, many=True)
             return Response(serializer.data)
 
-def calcular_edad(anio_nacimiento):
-    if anio_nacimiento is None:
-        return 0
-    else:
-        return datetime.date.today().year - anio_nacimiento
-
 @csrf_exempt
 def asignar_territorio(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
-            print(data)
             publicador_id = data.get('publicador_id')
             territorio_id = data.get('territorio_id')
             metodo_entrega = data.get('metodo_entrega')
+            
+            file_path = preparar_y_generar_territorio(publicador_id, territorio_id, metodo_entrega, solo_pdf=False)
 
-            # Crear Asignacion
-            publicador = Publicador.objects.get(pk=publicador_id)
-            territorio = Territorio.objects.get(pk=territorio_id)
-            asignacion = Asignacion(
-                publicador=publicador,
-                territorio=territorio,
-            )
-            asignacion.save()
-            # Obtener Datos
-            sordos = Sordo.objects.filter(territorio=territorio)
-            territorio_nombre = str(territorio.numero) + ' - ' +  territorio.nombre
-            id_asignacion = asignacion.id
-
-            # Initialize variables
-            texto1 = texto2 = texto3 = texto4 = texto5 = gps1 = gps2 = gps3 = gps4 = gps5 = id_sordo1 = id_sordo2 = id_sordo3 = id_sordo4 = id_sordo5 = ''
-
-            # Check if sordos list has items
-            if sordos:
-                # Assign values if sordos list has items
-                if len(sordos) > 0:
-                    texto1 = sordos[0].nombre + " - " + str(calcular_edad(sordos[0].anio_nacimiento)) + ' años : ' + sordos[0].direccion + '\n' + sordos[0].detalles_direccion
-                    gps1 = str(sordos[0].gps_latitud) + ',' + str(sordos[0].gps_longitud)
-                    id_sordo1 = sordos[0].codigo
-                if len(sordos) > 1:
-                    texto2 = sordos[1].nombre + " - " + str(calcular_edad(sordos[1].anio_nacimiento)) + ' años : '  + sordos[1].direccion + '\n' + sordos[1].detalles_direccion
-                    gps2 = str(sordos[1].gps_latitud) + ',' + str(sordos[1].gps_longitud)
-                    id_sordo2 = sordos[1].codigo
-                if len(sordos) > 2:
-                    texto3 = sordos[2].nombre + " - " + str(calcular_edad(sordos[2].anio_nacimiento)) + ' años : ' + sordos[2].direccion + '\n' + sordos[2].detalles_direccion
-                    gps3 = str(sordos[2].gps_latitud) + ',' + str(sordos[2].gps_longitud)
-                    id_sordo3 = sordos[2].codigo
-                if len(sordos) > 3:
-                    texto4 = sordos[3].nombre + " - " + str(calcular_edad(sordos[3].anio_nacimiento)) + ' años : ' + sordos[3].direccion + '\n' + sordos[3].detalles_direccion
-                    gps4 = str(sordos[3].gps_latitud) + ',' + str(sordos[3].gps_longitud)
-                    id_sordo4 = sordos[3].codigo
-                if len(sordos) > 4:
-                    texto5 = sordos[4].nombre + " - " + str(calcular_edad(sordos[4].anio_nacimiento)) + ' años : ' + sordos[4].direccion + '\n' + sordos[4].detalles_direccion
-                    gps5 = str(sordos[4].gps_latitud) + ',' + str(sordos[4].gps_longitud)
-                    id_sordo5 = sordos[4].codigo
-
-            script_dir = os.path.dirname(__file__)
-            template = "scripts/recursos/plantillaDigitalNuevosBotones.pdf"
-            template_impreso = "scripts/recursos/plantillaVaciaImprimir.pdf"
-            boton1 = "scripts/recursos/botonGoogle.png"
-            boton2 = "scripts/recursos/botonOsmand.png"
-            boton_reportar = "scripts/recursos/botonReportar.png"
-            boton_entregar = "scripts/recursos/botonTerminar.png"
-            template = os.path.join(script_dir, template)
-            template_impreso = os.path.join(script_dir, template_impreso)
-            boton1 = os.path.join(script_dir, boton1)
-            boton2 = os.path.join(script_dir, boton2)
-            boton_reportar = os.path.join(script_dir, boton_reportar)
-            boton_entregar = os.path.join(script_dir, boton_entregar)
+            chat_id = Publicador.objects.get(pk=publicador_id).telegram_chatid
+            territorio = Territorio.get(pk=territorio_id)
+            territorio_nombre = str(territorio.numero) + ' - ' + territorio.nombre
 
             # Llenar y Enviar Territorio
             if metodo_entrega =='digital_publicador' or metodo_entrega == 'digital_asignador':
-                file_path = llenarTerritorioDigital(texto1, texto2, texto3, texto4, texto5, territorio_nombre, gps1, gps2, gps3, gps4, gps5, id_sordo1, id_sordo2, id_sordo3, id_sordo4, id_sordo5, id_asignacion, template, boton1, boton2, boton_reportar, boton_entregar)
-                return JsonResponse({'chat_id': publicador.telegram_chatid, 'file_path': file_path, 'territorio':territorio_nombre}, status=200)
+                return JsonResponse({'chat_id': chat_id, 'file_path': file_path, 'territorio':territorio_nombre}, status=200)
                 
             elif metodo_entrega == 'impreso_asignador':
-                file_path = llenarTerritorioImpreso(texto1, texto2, texto3, texto4, texto5, territorio_nombre, gps1, gps2, gps3, gps4, gps5, id_sordo1, id_sordo2, id_sordo3, id_sordo4, id_sordo5, template_impreso)
                 return JsonResponse({'file_path': file_path, 'territorio':territorio_nombre}, status=200)
 
         except Exception as e:
