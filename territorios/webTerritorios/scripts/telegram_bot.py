@@ -6,7 +6,7 @@ import os
 import time
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update, InlineKeyboardButton, InlineKeyboardMarkup
 import requests
-from telegram.ext import (
+from telegram.ext import ( # type: ignore
     Application,
     CommandHandler,
     ContextTypes,
@@ -317,7 +317,62 @@ async def reporte_asignaciones(update: Update, context: ContextTypes.DEFAULT_TYP
 
 #Flujo de Reporte de Entregas Recientes para Administradores
 async def reporte_entregas(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    pass
+
+    try:
+        # Determinar ID de Usuario en base al ChatID de Telegram
+        data = {'telegram_chatid': update.message.chat_id}
+        usuario =  requests.post(BASE_URL_API+'publicadores/buscar_telegram_chatid/', json = data).json()[0]
+        context.user_data['user_data'] = usuario
+        grupos_usuario = usuario['user']['groups']
+        
+        if any(grupo.get('name') == 'administradores' for grupo in grupos_usuario):
+            # Obtener Lista de Entregas Recientes
+            data = {'congregacion_id': usuario['congregacion']}
+            asignaciones_entregadas =  requests.post(BASE_URL_API+'asignaciones/entregadas/', json = data).json()
+
+            # Generar Keyboard con boton por cada asignacion
+            encabezado = "📋 *Asignaciones Entregadas Recientemente* \n\n"
+            keyboard = []
+            for asignacion in asignaciones_entregadas:
+                territorio = str(asignacion['territorio_numero']) + '-' + asignacion['territorio_nombre']
+                publicador = asignacion['publicador_nombre']
+
+                current_date = datetime.datetime.now().date()
+                given_date = datetime.datetime.fromisoformat(asignacion['fecha_asignacion']).date()
+                days_since_date = (current_date - given_date).days
+                
+                boton_asignacion = "✅ "
+                
+                boton_asignacion += f" {days_since_date} días | {territorio} -> {publicador}"
+
+                # Callback Data
+                callback_data = ""
+                # 1. Timestamp epoch
+                callback_data += str(int(time.time()))
+                # 2. Flag Proceso
+                callback_data += ";detalle_asignacion;"
+                # 3. ID Asignacion
+                callback_data += f"{asignacion['id']}"
+
+
+                keyboard.append([InlineKeyboardButton(boton_asignacion, callback_data=callback_data)])       
+
+            reply_markup = InlineKeyboardMarkup(keyboard)
+
+            await update.message.reply_text(
+                encabezado,
+                reply_markup=reply_markup,
+                parse_mode='markdown'
+            )
+        else:
+            await update.message.reply_text("No tienes permisos para ver este reporte. Por favor contacta a un administrador.")
+            return ConversationHandler.END
+
+    except Exception as e:
+        print(e)
+        await update.message.reply_text("No se reconoce este usuario. Por favor contacta a un administrador.")
+        return ConversationHandler.END
+
 
 # Manejar Callbacks de Botones Inline
 async def inline_button_asignaciones(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -333,7 +388,7 @@ async def inline_button_asignaciones(update: Update, context: ContextTypes.DEFAU
         pass
     else:
 
-        # DETALLE DE ASIGNACION
+        # DETALLE DE ASIGNACION no entregada con botones para administrar
         if flag_proceso == "reporte_asignacion":
             # Obtener detalles de asignacion
             asignacion_detalles =  requests.get(BASE_URL_API + 'asignaciones/' + dato).json()
@@ -356,6 +411,21 @@ async def inline_button_asignaciones(update: Update, context: ContextTypes.DEFAU
 '''             
             await query.message.reply_text(text=descripcion, reply_markup=reply_markup, parse_mode='markdown')
         
+        # DETALLE DE ASIGNACION entregada
+        elif flag_proceso == "detalle_asignacion":
+            # Obtener detalles de asignacion
+            asignacion_detalles =  requests.get(BASE_URL_API + 'asignaciones/' + dato).json()
+            # Descripcion de la Asignacion
+            descripcion = f'''
+📋 *Asignacion* \n
+*id:* {asignacion_detalles['id']}
+*Territorio:* {asignacion_detalles['territorio_numero']} - {asignacion_detalles['territorio_nombre']}
+*Publicador:* {asignacion_detalles['publicador_nombre']}
+*Fecha de Asignacion:* {formatear_fecha(asignacion_detalles['fecha_asignacion'])}
+*Fecha de Entrega:* {formatear_fecha(asignacion_detalles['fecha_fin'])}
+'''             
+            await query.message.reply_text(text=descripcion, parse_mode='markdown')
+
         # BORRAR ASIGNACION
         elif flag_proceso == "borrar_asignacion":
             response = requests.delete(BASE_URL_API + f'asignaciones/{dato}/')
@@ -492,6 +562,7 @@ def main() -> None:
     application.add_handler(conv_handler)
 
     application.add_handler(CommandHandler("reporteAsignaciones",reporte_asignaciones))
+    application.add_handler(CommandHandler("reporteEntregas",reporte_entregas))
     application.add_handler(CallbackQueryHandler(inline_button_asignaciones))
 
     application.add_handler(CommandHandler("start", start))

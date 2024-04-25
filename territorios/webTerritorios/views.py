@@ -174,14 +174,25 @@ class AsignacionViewSet(viewsets.ModelViewSet):
             serializer = AsignacionSerializer(queryset, many=True)
             return Response(serializer.data)
         
+    @action(detail=False, methods=['post'])
+    def entregadas(self, request):
+        data = request.data
+        id_congregacion = data.get('congregacion_id')
+        if id_congregacion is None:
+            return Response({'error': 'No se proporcionó el ID de la congregación en la solicitud'}, status=400)
+        else:
+            queryset = Asignacion.objects.filter(
+                Q(territorio__congregacion=id_congregacion) & 
+                Q(fecha_fin__isnull=False)
+            ).order_by('-fecha_fin')[:15] # Ultimas 15 entregas
+            serializer = AsignacionSerializer(queryset, many=True)
+            return Response(serializer.data)
+
 def calcular_edad(anio_nacimiento):
     if anio_nacimiento is None:
         return 0
     else:
-        
         return datetime.date.today().year - anio_nacimiento
-
-from asgiref.sync import sync_to_async
 
 @csrf_exempt
 def asignar_territorio(request):
