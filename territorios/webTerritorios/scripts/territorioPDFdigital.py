@@ -69,7 +69,7 @@ def insertar_texto(text1, text2, text3, text4, text5, template="plantillaDigital
     for i in range(5):
         t = c.beginText()
         t.setTextOrigin(posiciones[i][0], posiciones[i][1])
-        text = "\\n".join(wrap(texts[i], 50))
+        text = "\\n".join(wrap(texts[i], 50)) # Max caracteres/Linea
         lines = text.split("\\n")
         for line in lines:
             t.textLine(line)
@@ -85,7 +85,10 @@ def insertar_texto(text1, text2, text3, text4, text5, template="plantillaDigital
         output.write(f)
 
     # Cleanup
-    os.remove("overlay.pdf") # Mover a cleanup function
+    try:
+        os.remove("overlay.pdf")# Mover a cleanup function
+    except:
+        pass
 
 def insertar_mapa_y_botones(territory_name, gps1, gps2, gps3, gps4, gps5, id_sordo_1, id_sordo_2, id_sordo_3, id_sordo_4, id_sordo_5, id_asignacion, icon1="recursos/botonGoogle.png", icon2="recursos/botonOsmand.png", icon_reportar="recursos/botonReportar.png", icon_entregar="recursos/botonTerminar.png"):
 
@@ -126,7 +129,7 @@ def insertar_mapa_y_botones(territory_name, gps1, gps2, gps3, gps4, gps5, id_sor
         primera_pagina.insert_image(reportar_rectangle, filename=icon_reportar)
 
         # Coordenadas GPS
-        gps = gps_list[i].replace("(","").replace(")","").split(",")
+        gps = gps_list[i].split(",")
 
         primera_pagina.insert_link({'kind': 2, 'from': googlemaps_rectangle, 'uri': f'https://www.google.com/maps/search/?api=1&query={gps[0]},{gps[1]}'})
         primera_pagina.insert_link({'kind': 2, 'from': osmand_rectangle, 'uri': f'https://osmand.net/map?pin={gps[0]},{gps[1]}#16/{gps[0]}/{gps[1]}'})    
@@ -136,8 +139,11 @@ def insertar_mapa_y_botones(territory_name, gps1, gps2, gps3, gps4, gps5, id_sor
     archivo.save(f"{pathlib.Path(__file__).parent.resolve()}/{territory_name} - {fecha_hoy_formato_espanol()}.pdf", garbage=4, deflate=True)
 
     # Cleanup
-    os.remove("output.pdf")
-    os.remove("mapa.jpg")
+    try:
+        os.remove("output.pdf")
+        os.remove("mapa.jpg")
+    except:
+        pass
 
     return f"{pathlib.Path(__file__).parent.resolve()}/{territory_name} - {fecha_hoy_formato_espanol()}.pdf"
 

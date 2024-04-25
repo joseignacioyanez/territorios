@@ -137,6 +137,9 @@ async def verificacion(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
             territorios_disponibles =  requests.post(BASE_URL_API+'territorios/disponibles/', json = data).json()
 
             reply_keyboard = []
+            if not territorios_disponibles:
+                await update.message.reply_text("No hay territorios disponibles para asignar. Por favor contacta a un administrador.")
+                return ConversationHandler.END
             for territorio in territorios_disponibles:
                 reply_keyboard.append([str(territorio['numero']) + ' - ' + territorio['nombre']])
 
@@ -188,37 +191,53 @@ f'''
 # Guarda el Método de Entrega y finaliza la asignación
 async def metodo_envio(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
-    context.user_data['metodo_envio'] = update.message.text
+    if update.message.text == 'Enviar al Telegram del herman@':
+        context.user_data['metodo_entrega'] = 'digital_publicador'
+    elif update.message.text == 'Registrar asignación y Enviarme el PDF digital por aquí':
+        context.user_data['metodo_entrega'] = 'digital_asignador'
+    elif update.message.text == 'Registrar asignación y Enviarme el PDF para Imprimir por aquí':
+        context.user_data['metodo_entrega'] = 'impreso_asignador'
 
-    if context.user_data['metodo_envio'] == 'Enviar al Telegram del herman@':
-        data = {
+    data = {
             'publicador_id': context.user_data['user_asignado_id'],
             'territorio_id': context.user_data['territorio_asignar_id'],
-            'metodo_entrega': 'digital_publicador'
-            }
-        print(data)
-        response =  requests.post('http://localhost:8000/webTerritorios/asignar_territorio/', json = data)
-        print(response)
-        response = response.json()
-        file = response.get('file_path')
-        # Send the document
-        with open(file, 'rb') as document_file:
-            await update.message.reply_document(document=document_file, caption='*Territorios*')
-        # Cleanup
-        os.remove(file)
-        pass
-    elif context.user_data['metodo_envio'] == 'Registrar asignación y Enviarme el PDF digital por aquí':
-        #TODO
-        pass
-    elif context.user_data['metodo_envio'] == 'Registrar asignación y Enviarme el PDF para Imprimir por aquí':
-        #TODO
-        pass
+            'metodo_entrega': context.user_data['metodo_entrega']
+        }
+    response_raw =  requests.post('http://localhost:8000/webTerritorios/asignar_territorio/', json = data)
+    response = response_raw.json()
+
+    if response_raw.status_code == 200:
+        
+        if context.user_data['metodo_entrega'] == 'digital_publicador':
+                
+            file = response.get('file_path')
+            with open(file, 'rb') as document_file:
+                await context.bot.send_document(chat_id=response.get('chat_id'), document=document_file, caption=f"¡Hola! Se te ha asignado el territorio *{response.get('territorio')}*. \n Por favor visita las direcciones, predica a cualquier persona que salga e intenta empezar estudios. Anota si no encuentras a nadie y regresa en diferentes horarios. Puedes avisarnos si cualquier detalle es incorrecto. \n ¡Muchas gracias por tu trabajo! 🎒🤟🏼", parse_mode='markdown')
+
+        elif context.user_data['metodo_entrega'] == 'digital_asignador':
+            
+            file = response.get('file_path')
+            with open(file, 'rb') as document_file:
+                await update.message.reply_document(document=document_file, caption='*Por favor hazle llegar el territorio al publicador*. Gracias', parse_mode='markdown')
+
+        elif context.user_data['metodo_entrega'] == 'impreso_asignador':
+            
+            file = response.get('file_path')
+            with open(file, 'rb') as document_file:
+                await update.message.reply_document(document=document_file, caption='*Por favor hazle llegar el territorio al publicador*. Gracias', parse_mode='markdown')
+
+        else:
+            await update.message.reply_text("No se reconoce el método de entrega. Por favor contacta a un administrador.")
+            return ConversationHandler.END
     else:
-        await update.message.reply_text("No se reconoce el método de entrega. Por favor contacta a un administrador.")
+        await update.message.reply_text(f"Error al asignar el territorio. Por favor contacta a un administrador. {response.get('error')}")
         return ConversationHandler.END
+
+    # Cleanup
+    os.remove(file)
     
     await update.message.reply_text(
-        f"¡Excelente! \n {context.user_data['territorio_asignar_numero_nombre']} se asignó a {context.user_data['user_asignado_nombre']}. \n ¡Gracias por tu ayuda! \n {response}", reply_markup=ReplyKeyboardRemove()
+        f"¡Excelente! \n {context.user_data['territorio_asignar_numero_nombre']} se asignó a {context.user_data['user_asignado_nombre']}. \n ¡Gracias por tu ayuda! \n", reply_markup=ReplyKeyboardRemove()
     )
     return ConversationHandler.END
 
@@ -296,6 +315,10 @@ async def reporte_asignaciones(update: Update, context: ContextTypes.DEFAULT_TYP
         await update.message.reply_text("No se reconoce este usuario. Por favor contacta a un administrador.")
         return ConversationHandler.END
 
+#Flujo de Reporte de Entregas Recientes para Administradores
+async def reporte_entregas(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    pass
+
 # Manejar Callbacks de Botones Inline
 async def inline_button_asignaciones(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -357,6 +380,16 @@ async def inline_button_asignaciones(update: Update, context: ContextTypes.DEFAU
 # COMANDO START
 # Usado en las urls de los botones de los territorios
 async def start (update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    # Usar API para obtener nombre del ChatID, en su defecto usar su username
+    try:
+        data = {'telegram_chatid': update.effective_chat.id}
+        response =  requests.post(BASE_URL_API+'publicadores/buscar_telegram_chatid/', json = data).json()
+        nombre_usuario = response[0]['nombre']
+    except:
+        nombre_usuario = update.effective_user.username
+
+
     # Comando /start sin argumentos - Ignorar
     if not context.args:
         pass
@@ -367,52 +400,78 @@ async def start (update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif context.args[0].startswith("reportar"):
         codigo_sordo = context.args[0].split('_')[1]
         await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Por favor indícame lo que hace falta corregir con el sordo {codigo_sordo}. Gracias!")
-        await context.bot.send_message(chat_id=CHAT_ID_ADMIN, text=f"⚠️ Reporte - {codigo_sordo} --- {update.effective_user.username} - {update.effective_chat.id}")
+        await context.bot.send_message(chat_id=CHAT_ID_ADMIN, text=f"⚠️ Reporte - {codigo_sordo} --- {nombre_usuario} - {update.effective_chat.id}")
     elif context.args[0].startswith("entregar"):
         id_asignacion = context.args[0].split('_')[1]
 
         # Llamar a Funcion de Entrega
-        # TODO
+        asignacion = requests.get(BASE_URL_API + f'asignaciones/{id_asignacion}').json()
+        asignacion['fecha_fin'] = datetime.datetime.now().isoformat()
+        response = requests.put(BASE_URL_API + f'asignaciones/{id_asignacion}/', json=asignacion)
+        if response.status_code == 200:
+            response = "Asignacion Entregada Exitosamente. 🥳"
+        else:
+            response = f"Error al Entregar Asignacion. Status Code: {response.status_code}."
+        await update.message.reply_text(text=response)
 
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Gracias por entregar el territorio XXX !")
-        await context.bot.send_message(chat_id=CHAT_ID_ADMIN, text=f"🥳 Entrega - {id_asignacion} --- {update.effective_user.username} - {update.effective_chat.id}")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Gracias por entregar el territorio {str(asignacion['territorio_numero'])} - {asignacion['territorio_nombre']} !")
+        await context.bot.send_message(chat_id=CHAT_ID_ADMIN, text=f"🥳 Entrega - {id_asignacion} --- {nombre_usuario} - {update.effective_chat.id}")
 
 # RESTO DE MENSAJES - REENVIO A ADMIN
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    
+    # Usar API para obtener nombre del ChatID, en su defecto usar su username
+    try:
+        data = {'telegram_chatid': update.effective_chat.id}
+        response =  requests.post(BASE_URL_API+'publicadores/buscar_telegram_chatid/', json = data).json()
+        nombre_usuario = response[0]['nombre']
+    except:
+        nombre_usuario = update.effective_user.username
+    
     # Ignorar mensajes del Administrador    
     #if update.effective_chat.id == CHAT_ID_ADMIN:
     #    pass
     #else:
         # Verificar Tipos de Mensajes
         if update.message.location:
-            await context.bot.send_message(chat_id=CHAT_ID_ADMIN, text=f"💬 {update.effective_user.username} - {update.effective_chat.id} - 📍 Ubicación")
+            await context.bot.send_message(chat_id=CHAT_ID_ADMIN, text=f"💬 {nombre_usuario} - {update.effective_chat.id} - 📍 Ubicación")
             await context.bot.send_location(chat_id=CHAT_ID_ADMIN, latitude=update.message.location.latitude, longitude=update.message.location.longitude)
         elif update.message.photo:
             file_id = update.message.photo[0].file_id
             caption = update.message.caption
-            await context.bot.send_message(chat_id=CHAT_ID_ADMIN, text=f"💬 {update.effective_user.username} - {update.effective_chat.id} - 📸 Foto")
+            await context.bot.send_message(chat_id=CHAT_ID_ADMIN, text=f"💬 {nombre_usuario} - {update.effective_chat.id} - 📸 Foto")
             await context.bot.send_photo(chat_id=CHAT_ID_ADMIN, photo=file_id, caption=caption)
         elif update.message.voice:
             file_id = update.message.voice.file_id
-            await context.bot.send_message(chat_id=CHAT_ID_ADMIN, text=f"💬 {update.effective_user.username} - {update.effective_chat.id} - 🎤 Audio")
+            await context.bot.send_message(chat_id=CHAT_ID_ADMIN, text=f"💬 {nombre_usuario} - {update.effective_chat.id} - 🎤 Audio")
             await context.bot.send_voice(chat_id=CHAT_ID_ADMIN, voice=file_id)
+        elif update.message.audio:
+            file_id = update.message.audio.file_id
+            caption = update.message.caption
+            await context.bot.send_message(chat_id=CHAT_ID_ADMIN, text=f"💬 {nombre_usuario} - {update.effective_chat.id} - 🎵 Audio")
+            await context.bot.send_audio(chat_id=CHAT_ID_ADMIN, audio=file_id, caption=caption)
         elif update.message.document:
             file_id = update.message.document.file_id
             caption = update.message.caption
-            await context.bot.send_message(chat_id=CHAT_ID_ADMIN, text=f"💬 {update.effective_user.username} - {update.effective_chat.id} - 📄 Documento")
+            await context.bot.send_message(chat_id=CHAT_ID_ADMIN, text=f"💬 {nombre_usuario} - {update.effective_chat.id} - 📄 Documento")
+            await context.bot.send_document(chat_id=CHAT_ID_ADMIN, document=file_id, caption=caption)
+        elif update.message.video:
+            file_id = update.message.video.file_id
+            caption = update.message.caption
+            await context.bot.send_message(chat_id=CHAT_ID_ADMIN, text=f"💬 {nombre_usuario} - {update.effective_chat.id} - 🎥 Video")
             await context.bot.send_video(chat_id=CHAT_ID_ADMIN, video=file_id, caption=caption)
         elif update.message.sticker:
             file_id = update.message.sticker.file_id
-            await context.bot.send_message(chat_id=CHAT_ID_ADMIN, text=f"💬 {update.effective_user.username} - {update.effective_chat.id} - 🎨 Sticker")
+            await context.bot.send_message(chat_id=CHAT_ID_ADMIN, text=f"💬 {nombre_usuario} - {update.effective_chat.id} - 🎨 Sticker")
             await context.bot.send_sticker(chat_id=CHAT_ID_ADMIN, sticker=file_id)
         elif update.message.contact:
-            await context.bot.send_message(chat_id=CHAT_ID_ADMIN, text=f"💬 {update.effective_user.username} - {update.effective_chat.id} - 👤 Contacto")
+            await context.bot.send_message(chat_id=CHAT_ID_ADMIN, text=f"💬 {nombre_usuario} - {update.effective_chat.id} - 👤 Contacto")
             await context.bot.send_contact(chat_id=CHAT_ID_ADMIN, phone_number=update.message.contact.phone_number, first_name=update.message.contact.first_name)
         elif update.message.text:
-            await context.bot.send_message(chat_id=CHAT_ID_ADMIN, text=f"💬 {update.effective_user.username} - {update.effective_chat.id} - 📝 Texto")
+            await context.bot.send_message(chat_id=CHAT_ID_ADMIN, text=f"💬 {nombre_usuario} - {update.effective_chat.id} - 📝 Texto")
             await context.bot.send_message(chat_id=CHAT_ID_ADMIN, text=update.message.text)
         else:
-            await context.bot.send_message(chat_id=CHAT_ID_ADMIN, text=f"💬 {update.effective_user.username} - {update.effective_chat.id} - 🤷‍♂️ No se pudo identificar el tipo de mensaje")
+            await context.bot.send_message(chat_id=CHAT_ID_ADMIN, text=f"💬 {nombre_usuario} - {update.effective_chat.id} - 🤷‍♂️ No se pudo identificar el tipo de mensaje")
             await context.bot.send_message(chat_id=CHAT_ID_ADMIN, text=update)
 
 def main() -> None:

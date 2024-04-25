@@ -1,8 +1,6 @@
 
 import json
 import os
-import threading
-import tracemalloc
 from django import forms
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
@@ -10,7 +8,6 @@ from django.urls import reverse, reverse_lazy
 from django.utils.safestring import SafeString
 from django.views import View
 
-from .scripts.helperFunctionsTelegram import enviar_documento
 from .models import Asignacion, Sordo, Publicador, Territorio, Congregacion, EstadoSordo
 from .serializers import CongregacionSerializer, EstadoSordoSerializer, TerritorioSerializer, PublicadorSerializer, SordoSerializer, AsignacionSerializer
 from rest_framework import viewsets
@@ -18,13 +15,14 @@ from django.contrib.auth.views import LoginView
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import logout
-from django.contrib.auth.models import User
 from django.db.models import Q, Count
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from .scripts.territorioPDFdigital import llenarTerritorioDigital
+from .scripts.territorioPDFimpreso import llenarTerritorioImpreso
+
 import datetime
 
 
@@ -122,7 +120,7 @@ class TerritorioViewSet(viewsets.ModelViewSet):
             return Response({'error': 'No se proporcionó el ID de la congregación en la solicitud'}, status=400)
         else:
             queryset = Territorio.objects.filter(
-                (Q(congregacion=congregacion_id) & Q(asignaciones_de_este_territorio__fecha_fin__isnull=False))
+                (Q(congregacion=congregacion_id) & ~Q(asignaciones_de_este_territorio__fecha_fin__isnull=True))
                 |(Q(congregacion=congregacion_id) & Q(asignaciones_de_este_territorio__isnull=True))
                 ).annotate(count=Count('asignaciones_de_este_territorio')).order_by('numero')
             serializer = TerritorioSerializer(queryset, many=True)
@@ -203,13 +201,9 @@ def asignar_territorio(request):
                 territorio=territorio,
             )
             asignacion.save()
-            print("Asignacion Creada")
-            print(asignacion)
-
             # Obtener Datos
             sordos = Sordo.objects.filter(territorio=territorio)
-            print(sordos)
-            territorio_nombre = territorio.nombre
+            territorio_nombre = str(territorio.numero) + ' - ' +  territorio.nombre
             id_asignacion = asignacion.id
 
             # Initialize variables
@@ -221,31 +215,33 @@ def asignar_territorio(request):
                 if len(sordos) > 0:
                     texto1 = sordos[0].nombre + " - " + str(calcular_edad(sordos[0].anio_nacimiento)) + ' años : ' + sordos[0].direccion + '\n' + sordos[0].detalles_direccion
                     gps1 = str(sordos[0].gps_latitud) + ',' + str(sordos[0].gps_longitud)
-                    id_sordo1 = sordos[0].id
+                    id_sordo1 = sordos[0].codigo
                 if len(sordos) > 1:
                     texto2 = sordos[1].nombre + " - " + str(calcular_edad(sordos[1].anio_nacimiento)) + ' años : '  + sordos[1].direccion + '\n' + sordos[1].detalles_direccion
                     gps2 = str(sordos[1].gps_latitud) + ',' + str(sordos[1].gps_longitud)
-                    id_sordo2 = sordos[1].id
+                    id_sordo2 = sordos[1].codigo
                 if len(sordos) > 2:
                     texto3 = sordos[2].nombre + " - " + str(calcular_edad(sordos[2].anio_nacimiento)) + ' años : ' + sordos[2].direccion + '\n' + sordos[2].detalles_direccion
                     gps3 = str(sordos[2].gps_latitud) + ',' + str(sordos[2].gps_longitud)
-                    id_sordo3 = sordos[2].id
+                    id_sordo3 = sordos[2].codigo
                 if len(sordos) > 3:
                     texto4 = sordos[3].nombre + " - " + str(calcular_edad(sordos[3].anio_nacimiento)) + ' años : ' + sordos[3].direccion + '\n' + sordos[3].detalles_direccion
                     gps4 = str(sordos[3].gps_latitud) + ',' + str(sordos[3].gps_longitud)
-                    id_sordo4 = sordos[3].id
+                    id_sordo4 = sordos[3].codigo
                 if len(sordos) > 4:
                     texto5 = sordos[4].nombre + " - " + str(calcular_edad(sordos[4].anio_nacimiento)) + ' años : ' + sordos[4].direccion + '\n' + sordos[4].detalles_direccion
                     gps5 = str(sordos[4].gps_latitud) + ',' + str(sordos[4].gps_longitud)
-                    id_sordo5 = sordos[4].id
+                    id_sordo5 = sordos[4].codigo
 
             script_dir = os.path.dirname(__file__)
             template = "scripts/recursos/plantillaDigitalNuevosBotones.pdf"
+            template_impreso = "scripts/recursos/plantillaVaciaImprimir.pdf"
             boton1 = "scripts/recursos/botonGoogle.png"
             boton2 = "scripts/recursos/botonOsmand.png"
             boton_reportar = "scripts/recursos/botonReportar.png"
             boton_entregar = "scripts/recursos/botonTerminar.png"
             template = os.path.join(script_dir, template)
+            template_impreso = os.path.join(script_dir, template_impreso)
             boton1 = os.path.join(script_dir, boton1)
             boton2 = os.path.join(script_dir, boton2)
             boton_reportar = os.path.join(script_dir, boton_reportar)
@@ -254,12 +250,12 @@ def asignar_territorio(request):
             # Llenar y Enviar Territorio
             if metodo_entrega =='digital_publicador' or metodo_entrega == 'digital_asignador':
                 file_path = llenarTerritorioDigital(texto1, texto2, texto3, texto4, texto5, territorio_nombre, gps1, gps2, gps3, gps4, gps5, id_sordo1, id_sordo2, id_sordo3, id_sordo4, id_sordo5, id_asignacion, template, boton1, boton2, boton_reportar, boton_entregar)
-                return JsonResponse({'message': 'Asignación creada exitosamente', 'file_path': file_path}, status=200)
+                return JsonResponse({'chat_id': publicador.telegram_chatid, 'file_path': file_path, 'territorio':territorio_nombre}, status=200)
                 
-            elif metodo_entrega == 'imprimir':
-                pass
+            elif metodo_entrega == 'impreso_asignador':
+                file_path = llenarTerritorioImpreso(texto1, texto2, texto3, texto4, texto5, territorio_nombre, gps1, gps2, gps3, gps4, gps5, id_sordo1, id_sordo2, id_sordo3, id_sordo4, id_sordo5, template_impreso)
+                return JsonResponse({'file_path': file_path, 'territorio':territorio_nombre}, status=200)
 
-            return JsonResponse({'message': 'Asignación creada exitosamente'}, status=200)
         except Exception as e:
             print(e)
             return JsonResponse({'error': str(e)}, status=500)
