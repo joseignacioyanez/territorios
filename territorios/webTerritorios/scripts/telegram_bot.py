@@ -4,6 +4,8 @@ import locale
 import logging
 import os
 import time
+import traceback
+from dotenv import load_dotenv
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update, InlineKeyboardButton, InlineKeyboardMarkup
 import requests
 from telegram.ext import ( # type: ignore
@@ -23,6 +25,14 @@ def formatear_fecha(fecha):
     fecha_formateada = date_object.strftime("%d de %B del %Y")
     return fecha_formateada
 
+def notify_exception(e: Exception) -> None:
+    # Notify the admin about the exception
+    print(f"An exception occurred in the bot:\n\n{str(e)}\n\n{traceback.format_exc()}")
+    error_message = f"An exception occurred in the bot:\n\n{str(e)}\n\n{traceback.format_exc()}"
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage?chat_id={CHAT_ID_ADMIN}&text={error_message}"
+    requests.get(url)
+
+
 
 # Enable logging
 logging.basicConfig(
@@ -35,7 +45,9 @@ logger = logging.getLogger(__name__)
 
 # Constantes
 PUBLICADOR, VERIFICACION, TERRITORIO, METODO_ENVIO = range(4)
-CHAT_ID_ADMIN = 334575560
+load_dotenv()
+CHAT_ID_ADMIN = os.environ['TELEGRAM_ADMIN_CHAT_ID']
+TELEGRAM_BOT_TOKEN=os.environ['TELEGRAM_BOT_TOKEN']
 BASE_URL_API = 'http://localhost:8000/api/'
 
 # FLUJO ASIGNAR - FASE 0
@@ -47,7 +59,8 @@ async def asignar(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         data = {'telegram_chatid': update.message.chat_id}
         response =  requests.post( BASE_URL_API+'publicadores/buscar_telegram_chatid/', json = data).json()
         context.user_data['user_asignador'] = response[0] # Guardar datos del Usuario en Contexto
-    except:
+    except Exception as e:
+        notify_exception(e)
         await update.message.reply_text("No se reconoce este usuario. Por favor contacta a un administrador.")
         return ConversationHandler.END
     
@@ -58,7 +71,8 @@ async def asignar(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         try:
             data = {'congregacion_id': context.user_data['user_asignador']['congregacion']}
             publicadores =  requests.post(BASE_URL_API+'publicadores/activos_de_congregacion/', json = data).json()
-        except:
+        except Exception as e:
+            notify_exception(e)
             await update.message.reply_text("Error al obtener la lista de Publicadores. Por favor contacta a un administrador.")
             return ConversationHandler.END
     
@@ -93,7 +107,8 @@ async def publicador(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     try:
         data = {'congregacion_id': context.user_data['user_asignador']['congregacion']}
         asignaciones_pendientes =  requests.post(BASE_URL_API+'asignaciones/pendientes/', json = data).json()
-    except:
+    except Exception as e:
+        notify_exception(e)
         await update.message.reply_text("Error al obtener la lista de Asignaciones. Por favor contacta a un administrador.")
         return ConversationHandler.END
     
@@ -201,7 +216,8 @@ async def metodo_envio(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
     data = {
             'publicador_id': context.user_data['user_asignado_id'],
             'territorio_id': context.user_data['territorio_asignar_id'],
-            'metodo_entrega': context.user_data['metodo_entrega']
+            'metodo_entrega': context.user_data['metodo_entrega'],
+            'solo_pdf': False
         }
     response_raw =  requests.post('http://localhost:8000/webTerritorios/asignar_territorio/', json = data)
     response = response_raw.json()
@@ -212,20 +228,27 @@ async def metodo_envio(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
                 
             file = response.get('file_path')
             with open(file, 'rb') as document_file:
-                await context.bot.send_document(chat_id=response.get('chat_id'), document=document_file, caption=f"¡Hola! Se te ha asignado el territorio *{response.get('territorio')}*. \n Por favor visita las direcciones, predica a cualquier persona que salga e intenta empezar estudios. Anota si no encuentras a nadie y regresa en diferentes horarios. Puedes avisarnos si cualquier detalle es incorrecto. \n ¡Muchas gracias por tu trabajo! 🎒🤟🏼", parse_mode='markdown')
+                await context.bot.send_document(chat_id=response.get('chat_id'), document=document_file, caption=f"¡Hola {context.user_data['user_asignado_nombre']}! Se te ha asignado el territorio *{response.get('territorio')}*. \n Por favor visita las direcciones, predica a cualquier persona que salga e intenta empezar estudios. Anota si no encuentras a nadie y regresa en diferentes horarios. Puedes avisarnos si cualquier detalle es incorrecto. \n ¡Muchas gracias por tu trabajo! 🎒🤟🏼", parse_mode='markdown')
+                # Notificar al Administrador
+                user_asignador_nombre = context.user_data['user_asignador']['nombre']
+                await context.bot.send_message(chat_id=CHAT_ID_ADMIN, text=f"ℹ️ El territorio {response.get('territorio')} ha sido asignado a {context.user_data['user_asignado_nombre']} por {user_asignador_nombre} correctamente. Se ha enviado al Telegram del publicador")
 
         elif context.user_data['metodo_entrega'] == 'digital_asignador':
             
             file = response.get('file_path')
             with open(file, 'rb') as document_file:
                 await update.message.reply_document(document=document_file, caption='*Por favor hazle llegar el territorio al publicador*. Gracias', parse_mode='markdown')
+                # Notificar al Administrador
+                await context.bot.send_message(chat_id=CHAT_ID_ADMIN, text=f"ℹ️ El territorio {response.get('territorio')} ha sido asignado a {context.user_data['user_asignado_nombre']} por {user_asignador_nombre} correctamente. Se ha descargado el PDF digital para el asignador")
 
         elif context.user_data['metodo_entrega'] == 'impreso_asignador':
             
             file = response.get('file_path')
             with open(file, 'rb') as document_file:
                 await update.message.reply_document(document=document_file, caption='*Por favor hazle llegar el territorio al publicador*. Gracias', parse_mode='markdown')
-
+                # Notificar al Administrador
+                await context.bot.send_message(chat_id=CHAT_ID_ADMIN, text=f"ℹ️ El territorio {response.get('territorio')} ha sido asignado a {context.user_data['user_asignado_nombre']} por {user_asignador_nombre} correctamente. Se ha descargado el PDF para imprimir para el asignador")
+        
         else:
             await update.message.reply_text("No se reconoce el método de entrega. Por favor contacta a un administrador.")
             return ConversationHandler.END
@@ -379,73 +402,162 @@ async def inline_button_asignaciones(update: Update, context: ContextTypes.DEFAU
     query = update.callback_query
     await query.answer()
 
-    timestamp = query.data.split(';')[0]
-    flag_proceso = query.data.split(';')[1]
-    dato = query.data.split(';')[2]
+    try:
+        timestamp = query.data.split(';')[0]
+        flag_proceso = query.data.split(';')[1]
+        dato = query.data.split(';')[2]
+        dato2 = query.data.split(';')[3]
+    except Exception as e:
+        pass
 
     # Ignorar Queries de mas de 5 minutos
     if int(time.time()) - int(timestamp) > 300:
         pass
     else:
+        try:
+            # DETALLE DE ASIGNACION no entregada con botones para administrar
+            if flag_proceso == "reporte_asignacion":
+                # Obtener detalles de asignacion
+                asignacion_detalles =  requests.get(BASE_URL_API + 'asignaciones/' + dato).json()
 
-        # DETALLE DE ASIGNACION no entregada con botones para administrar
-        if flag_proceso == "reporte_asignacion":
-            # Obtener detalles de asignacion
-            asignacion_detalles =  requests.get(BASE_URL_API + 'asignaciones/' + dato).json()
+                # Devolver botones para Borrar y Entregar Asignacion
+                timestamp_now = str(int(time.time()))
+                keyboard = [
+                    [InlineKeyboardButton("🗑️ Borrar", callback_data=f"{timestamp_now};borrar_asignacion;{dato}"),
+                    InlineKeyboardButton("✅ Entregar", callback_data=f"{timestamp_now};entregar_asignacion;{dato}")],
+                    [InlineKeyboardButton("📄 Regenerar PDF", callback_data=f"{timestamp_now};regenerar_pdf;{dato}")]
+                ]
+                reply_markup = InlineKeyboardMarkup(keyboard)
 
-            # Devolver botones para Borrar y Entregar Asignacion
-            timestamp_now = str(int(time.time()))
-            keyboard = [
-                [InlineKeyboardButton("🗑️ Borrar", callback_data=f"{timestamp_now};borrar_asignacion;{dato}"),
-                InlineKeyboardButton("✅ Entregar", callback_data=f"{timestamp_now};entregar_asignacion;{dato}")]
-            ]
-            reply_markup = InlineKeyboardMarkup(keyboard)
+                # Descripcion de la Asignacion
+                descripcion = f'''
+    📋 *Asignacion* \n
+    *id:* {asignacion_detalles['id']}
+    *Territorio:* {asignacion_detalles['territorio_numero']} - {asignacion_detalles['territorio_nombre']}
+    *Publicador:* {asignacion_detalles['publicador_nombre']}
+    *Fecha de Asignacion:* {formatear_fecha(asignacion_detalles['fecha_asignacion'])}
+    '''             
+                await query.message.reply_text(text=descripcion, reply_markup=reply_markup, parse_mode='markdown')
+            
+            # DETALLE DE ASIGNACION entregada
+            elif flag_proceso == "detalle_asignacion":
+                # Obtener detalles de asignacion
+                asignacion_detalles =  requests.get(BASE_URL_API + 'asignaciones/' + dato).json()
+                # Descripcion de la Asignacion
+                descripcion = f'''
+    📋 *Asignacion* \n
+    *id:* {asignacion_detalles['id']}
+    *Territorio:* {asignacion_detalles['territorio_numero']} - {asignacion_detalles['territorio_nombre']}
+    *Publicador:* {asignacion_detalles['publicador_nombre']}
+    *Fecha de Asignacion:* {formatear_fecha(asignacion_detalles['fecha_asignacion'])}
+    *Fecha de Entrega:* {formatear_fecha(asignacion_detalles['fecha_fin'])}
+    '''             
+                await query.message.reply_text(text=descripcion, parse_mode='markdown')
 
-            # Descripcion de la Asignacion
-            descripcion = f'''
-📋 *Asignacion* \n
-*id:* {asignacion_detalles['id']}
-*Territorio:* {asignacion_detalles['territorio_numero']} - {asignacion_detalles['territorio_nombre']}
-*Publicador:* {asignacion_detalles['publicador_nombre']}
-*Fecha de Asignacion:* {formatear_fecha(asignacion_detalles['fecha_asignacion'])}
-'''             
-            await query.message.reply_text(text=descripcion, reply_markup=reply_markup, parse_mode='markdown')
-        
-        # DETALLE DE ASIGNACION entregada
-        elif flag_proceso == "detalle_asignacion":
-            # Obtener detalles de asignacion
-            asignacion_detalles =  requests.get(BASE_URL_API + 'asignaciones/' + dato).json()
-            # Descripcion de la Asignacion
-            descripcion = f'''
-📋 *Asignacion* \n
-*id:* {asignacion_detalles['id']}
-*Territorio:* {asignacion_detalles['territorio_numero']} - {asignacion_detalles['territorio_nombre']}
-*Publicador:* {asignacion_detalles['publicador_nombre']}
-*Fecha de Asignacion:* {formatear_fecha(asignacion_detalles['fecha_asignacion'])}
-*Fecha de Entrega:* {formatear_fecha(asignacion_detalles['fecha_fin'])}
-'''             
-            await query.message.reply_text(text=descripcion, parse_mode='markdown')
+            # BORRAR ASIGNACION
+            elif flag_proceso == "borrar_asignacion":
+                response = requests.delete(BASE_URL_API + f'asignaciones/{dato}/')
+                if response.status_code == 204:
+                    response = "Asignacion Borrada Exitosamente. 🚮"
+                else:
+                    response = f"Error al Borrar Asignacion. Status Code: {response.status_code}."
+                await query.message.reply_text(text=response)
+                await query.message.delete()
+            
+            # ENTREGAR ASIGNACION
+            elif flag_proceso == "entregar_asignacion":
+                asignacion = requests.get(BASE_URL_API + f'asignaciones/{dato}').json()
+                asignacion['fecha_fin'] = datetime.datetime.now().isoformat()
+                response = requests.put(BASE_URL_API + f'asignaciones/{dato}/', json=asignacion)
+                if response.status_code == 200:
+                    response = "Asignacion Entregada Exitosamente. 🥳"
+                else:
+                    response = f"Error al Entregar Asignacion. Status Code: {response.status_code}."
+                await query.message.reply_text(text=response)
 
-        # BORRAR ASIGNACION
-        elif flag_proceso == "borrar_asignacion":
-            response = requests.delete(BASE_URL_API + f'asignaciones/{dato}/')
-            if response.status_code == 204:
-                response = "Asignacion Borrada Exitosamente. 🚮"
-            else:
-                response = f"Error al Borrar Asignacion. Status Code: {response.status_code}."
-            await query.message.reply_text(text=response)
-            await query.message.delete()
-        
-        # ENTREGAR ASIGNACION
-        elif flag_proceso == "entregar_asignacion":
-            asignacion = requests.get(BASE_URL_API + f'asignaciones/{dato}').json()
-            asignacion['fecha_fin'] = datetime.datetime.now().isoformat()
-            response = requests.put(BASE_URL_API + f'asignaciones/{dato}/', json=asignacion)
-            if response.status_code == 200:
-                response = "Asignacion Entregada Exitosamente. 🥳"
-            else:
-                response = f"Error al Entregar Asignacion. Status Code: {response.status_code}."
-            await query.message.reply_text(text=response)
+            # REGENERAR PDF DE ASIGNACION
+            elif flag_proceso == "regenerar_pdf":
+                # DATO = ID ASIGNACION
+                asignacion = requests.get(BASE_URL_API + f'asignaciones/{dato}').json()
+                publicador = requests.get(BASE_URL_API + f'publicadores/{asignacion["publicador"]}').json()
+                telegram_chatid = publicador['telegram_chatid']
+                dato2_publicador = telegram_chatid
+                
+                # DATO2 = TELEGRAM_CHAT_ID
+                dato2_solicitante = update.effective_chat.id # Solicitante
+                # Devolver botones para escoger Metodo de Entrega
+                timestamp_now = str(int(time.time()))
+                keyboard = [
+                    [InlineKeyboardButton("📦 Enviar a Hermano Telegram", callback_data=f"{timestamp_now};regenerar_pdf_digital_al_asignado;{dato};{dato2_publicador}")],
+                    [InlineKeyboardButton("👇🏼📱 Por aqui, digital", callback_data=f"{timestamp_now};regenerar_pdf_digital_al_solicitante;{dato};{dato2_solicitante}")],
+                    [InlineKeyboardButton("👇🏼📄 Por aqui, impreso", callback_data=f"{timestamp_now};regenerar_pdf_impreso_al_solicitante;{dato};{dato2_solicitante}")]
+                ]
+                reply_markup = InlineKeyboardMarkup(keyboard)        
+                await query.message.reply_text(text="Escoge como enviar el PDF:", reply_markup=reply_markup)
+
+            # 1. REGENERAR PDF DIGITAL AL ASIGNADO
+            elif flag_proceso == "regenerar_pdf_digital_al_asignado":
+                asignacion = requests.get(BASE_URL_API + f'asignaciones/{dato}').json()
+                data = {
+                'publicador_id': asignacion['publicador'],
+                'territorio_id': asignacion['territorio'],
+                'metodo_entrega': 'digital_publicador',
+                'solo_pdf': True
+                }
+                response_raw =  requests.post('http://localhost:8000/webTerritorios/asignar_territorio/', json = data)
+                response = response_raw.json()
+                if response_raw.status_code == 200:                        
+                    file = response.get('file_path')
+                    with open(file, 'rb') as document_file:
+                        await context.bot.send_document(chat_id=dato2, document=document_file, caption=f"¡Hola {asignacion['publicador_nombre']}! Se te ha asignado el territorio *{str(asignacion['territorio_numero']) + ' - ' + asignacion['territorio_nombre']}*. \n Por favor visita las direcciones, predica a cualquier persona que salga e intenta empezar estudios. Anota si no encuentras a nadie y regresa en diferentes horarios. Puedes avisarnos si cualquier detalle es incorrecto. \n ¡Muchas gracias por tu trabajo! 🎒🤟🏼", parse_mode='markdown')
+                
+                # Cleanup
+                os.remove(file)
+                await query.message.reply_text("PDF enviado al Telegram del Publicador.")
+
+            # 2. REGENERAR PDF DIGITAL AL SOLICITANTE
+            elif flag_proceso == "regenerar_pdf_digital_al_solicitante":
+                asignacion = requests.get(BASE_URL_API + f'asignaciones/{dato}').json()
+                data = {
+                'publicador_id': asignacion['publicador'],
+                'territorio_id': asignacion['territorio'],
+                'metodo_entrega': 'digital_asignador',
+                'solo_pdf': True
+                }
+                response_raw =  requests.post('http://localhost:8000/webTerritorios/asignar_territorio/', json = data)
+                response = response_raw.json()
+                if response_raw.status_code == 200:                        
+                    file = response.get('file_path')
+                    with open(file, 'rb') as document_file:
+                        await context.bot.send_document(chat_id=dato2, document=document_file, caption=f"He aquí el documento!!!", parse_mode='markdown')
+                
+                # Cleanup
+                os.remove(file)
+
+
+            # 3. REGENERAR PDF IMPRESO AL SOLICITANTE
+            elif flag_proceso == "regenerar_pdf_impreso_al_solicitante":
+                asignacion = requests.get(BASE_URL_API + f'asignaciones/{dato}').json()
+                data = {
+                'publicador_id': asignacion['publicador'],
+                'territorio_id': asignacion['territorio'],
+                'metodo_entrega': 'impreso_asignador',
+                'solo_pdf': True
+                }
+                response_raw =  requests.post('http://localhost:8000/webTerritorios/asignar_territorio/', json = data)
+                response = response_raw.json()
+                if response_raw.status_code == 200:                        
+                    file = response.get('file_path')
+                    with open(file, 'rb') as document_file:
+                        await context.bot.send_document(chat_id=dato2, document=document_file, caption=f"He aquí el documento!!!", parse_mode='markdown')
+                
+                # Cleanup
+                os.remove(file)
+        except Exception as e:
+            notify_exception(e)
+            await query.message.reply_text("Error al procesar la solicitud. Por favor contacta a un administrador.")
+
+
 
 # COMANDO START
 # Usado en las urls de los botones de los territorios
@@ -475,17 +587,21 @@ async def start (update: Update, context: ContextTypes.DEFAULT_TYPE):
         id_asignacion = context.args[0].split('_')[1]
 
         # Llamar a Funcion de Entrega
-        asignacion = requests.get(BASE_URL_API + f'asignaciones/{id_asignacion}').json()
-        asignacion['fecha_fin'] = datetime.datetime.now().isoformat()
-        response = requests.put(BASE_URL_API + f'asignaciones/{id_asignacion}/', json=asignacion)
-        if response.status_code == 200:
-            response = "Asignacion Entregada Exitosamente. 🥳"
-        else:
-            response = f"Error al Entregar Asignacion. Status Code: {response.status_code}."
-        await update.message.reply_text(text=response)
+        try:
+            asignacion = requests.get(BASE_URL_API + f'asignaciones/{id_asignacion}').json()
+            asignacion['fecha_fin'] = datetime.datetime.now().isoformat()
+            response = requests.put(BASE_URL_API + f'asignaciones/{id_asignacion}/', json=asignacion)
+            if response.status_code == 200:
+                response = "Asignacion Entregada Exitosamente. 🥳"
+            else:
+                response = f"Error al Entregar Asignacion. Status Code: {response.status_code}."
+            await update.message.reply_text(text=response)
 
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Gracias por entregar el territorio {str(asignacion['territorio_numero'])} - {asignacion['territorio_nombre']} !")
-        await context.bot.send_message(chat_id=CHAT_ID_ADMIN, text=f"🥳 Entrega - {id_asignacion} --- {nombre_usuario} - {update.effective_chat.id}")
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Gracias por entregar el territorio {str(asignacion['territorio_numero'])} - {asignacion['territorio_nombre']} !")
+            await context.bot.send_message(chat_id=CHAT_ID_ADMIN, text=f"🥳 Entrega - {id_asignacion} --- {nombre_usuario} - {update.effective_chat.id}")
+        except Exception as e:
+            notify_exception(e)
+            await update.message.reply_text("Error al entregar el territorio. Por favor contacta a un administrador.")
 
 # RESTO DE MENSAJES - REENVIO A ADMIN
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -499,7 +615,7 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         nombre_usuario = update.effective_user.username
     
     # Ignorar mensajes del Administrador    
-    if update.effective_chat.id == CHAT_ID_ADMIN:
+    if str(update.effective_chat.id) == str(CHAT_ID_ADMIN):
         pass
     else:
         # Verificar Tipos de Mensajes
@@ -551,7 +667,7 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 def main() -> None:
     """Run the bot."""
     # Crear Aplicacion con Token
-    application = Application.builder().token("5937302183:AAHxqvoy9UjAIVIMlDUp6J7ny6y3D8X9brw").build()
+    application = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
 
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler("asignar", asignar)],
@@ -571,10 +687,15 @@ def main() -> None:
 
     application.add_handler(CommandHandler("start", start))
     application.add_handler(MessageHandler( filters.ALL, echo))
-
-    # Correr hasta Ctrl + C
-    application.run_polling(allowed_updates=Update.ALL_TYPES)
-
+    try:
+        # Correr hasta Ctrl + C
+        application.run_polling(allowed_updates=Update.ALL_TYPES)
+    except Exception as e:
+        # Notify the admin about the exception
+        print(f"An exception occurred in the bot:\n\n{str(e)}\n\n{traceback.format_exc()}")
+        error_message = f"An exception occurred in the bot:\n\n{str(e)}\n\n{traceback.format_exc()}"
+        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage?chat_id={CHAT_ID_ADMIN}&text={error_message}"
+        requests.get(url)
 
 if __name__ == "__main__":
     main()

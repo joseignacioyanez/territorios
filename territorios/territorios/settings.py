@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 
 from pathlib import Path
 
-from decouple import config
+from decouple import config # type: ignore
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -24,6 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-l^0xo*5b_*wfui)t46u+tgsdikbs1^$pv_3-y3idrvqj)^p*!t'
 GOOGLE_MAPS_API_KEY = config('GOOGLE_MAPS_API_KEY')
+TELEGRAM_ADMIN_CHAT_ID = config('TELEGRAM_ADMIN_CHAT_ID')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -52,6 +53,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware'
 ]
 
 ROOT_URLCONF = 'territorios.urls'
@@ -71,6 +74,8 @@ TEMPLATES = [
         },
     },
 ]
+
+MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
 WSGI_APPLICATION = 'territorios.wsgi.application'
 

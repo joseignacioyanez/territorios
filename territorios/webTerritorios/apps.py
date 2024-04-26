@@ -1,5 +1,6 @@
 import subprocess
 from django.apps import AppConfig
+from dotenv import load_dotenv
 from .telegramBot import main as botMain
 
 

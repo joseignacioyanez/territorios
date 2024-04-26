@@ -1,12 +1,15 @@
 
 import json
 import os
+import threading
+import time
 from django import forms
-from django.http import JsonResponse
+from django.http import FileResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse, reverse_lazy
 from django.utils.safestring import SafeString
 from django.views import View
+import requests
 
 from .models import Asignacion, Sordo, Publicador, Territorio, Congregacion, EstadoSordo
 from .serializers import CongregacionSerializer, EstadoSordoSerializer, TerritorioSerializer, PublicadorSerializer, SordoSerializer, AsignacionSerializer
@@ -19,6 +22,8 @@ from django.db.models import Q, Count
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from django.contrib.messages import get_messages
+
 
 from .scripts.territorioPDFdigital import llenarTerritorioDigital
 from .scripts.territorioPDFimpreso import llenarTerritorioImpreso
@@ -38,6 +43,8 @@ def preparar_y_generar_territorio(publicador_id, territorio_id, metodo_entrega, 
             territorio=territorio,
         )
         asignacion.save()
+    else:
+        asignacion = Asignacion.objects.filter(publicador=publicador, territorio=territorio).last()
     
     # Generar PDF Territorio
     # Obtener Datos
@@ -101,6 +108,41 @@ def calcular_edad(anio_nacimiento):
         return 0
     else:
         return datetime.date.today().year - anio_nacimiento
+
+
+def enviar_territorio_telegram(chat_id, file_path, territorio):
+    try:
+        files = {'document': open(f'{file_path}', 'rb')}
+        resp = requests.post(f"https://api.telegram.org/bot{os.environ['TELEGRAM_BOT_TOKEN']}/sendDocument?chat_id={chat_id}", files=files)
+
+        message = f"¡Hola! Se te ha asignado el territorio *{territorio}*. \n Por favor visita las direcciones, predica a cualquier persona que salga e intenta empezar estudios. Anota si no encuentras a nadie y regresa en diferentes horarios. Puedes avisarnos si cualquier detalle es incorrecto. \n ¡Muchas gracias por tu trabajo! 🎒🤟🏼"
+        url = f"https://api.telegram.org/bot{os.environ['TELEGRAM_BOT_TOKEN']}/sendMessage?chat_id={chat_id}&text={message}"
+        resp = requests.get(url).json()
+
+        # Cleanup
+        os.remove(file_path)
+        return True
+
+    except Exception as e:
+        print(e)
+        return False
+    
+def enviar_mensaje_telegram(chat_id, message):
+    try:
+        url = f"https://api.telegram.org/bot{os.environ['TELEGRAM_BOT_TOKEN']}/sendMessage?chat_id={chat_id}&text={message}"
+        resp = requests.get(url).json()
+        return True
+    
+    except Exception as e:
+        print(e)
+        return False
+    
+def borrar_despues_de_segundos(file_path, tiempo):
+    time.sleep(tiempo)
+    if os.path.exists(file_path):
+        os.remove(file_path)
+
+
     
 # Views de Django
 
@@ -132,9 +174,13 @@ class AsignarView(LoginRequiredMixin, View):
         congregacion = request.user.publicador.congregacion
         publicadores = Publicador.objects.filter(congregacion=congregacion, activo=True)
         territorios = Territorio.objects.filter(
-            Q(congregacion=congregacion) & 
-            (Q(asignaciones_de_este_territorio__fecha_fin__isnull=False) | Q(asignaciones_de_este_territorio__isnull=True))
-        )
+                (Q(congregacion=congregacion) & ~Q(asignaciones_de_este_territorio__fecha_fin__isnull=True))
+                |(Q(congregacion=congregacion) & Q(asignaciones_de_este_territorio__isnull=True))
+                ).annotate(count=Count('asignaciones_de_este_territorio')).order_by('numero')
+
+        messages = get_messages(request)
+        for message in messages:
+            print(message)
 
         return render(request, "webTerritorios/asignar.html", {
             "publicadores": publicadores,
@@ -143,20 +189,66 @@ class AsignarView(LoginRequiredMixin, View):
     
     def post(self, request):
 
-        print(request.POST.get('territorio'))
-        print(request.POST.get('publicador'))
+        territorio = request.POST.get('territorio')
+        publicador = request.POST.get('publicador')
+        asignador = request.user.publicador.nombre
 
+        # DIGITAL TELEGRAM
         if request.POST.get('enviarTelegram'):
+
+            file_path = preparar_y_generar_territorio(publicador, territorio, 'digital_publicador', solo_pdf=False)
+            # Notificar Administrador
+            enviar_mensaje_telegram(os.environ['TELEGRAM_ADMIN_CHAT_ID'], f'ℹ️ El territorio {territorio_nombre} ha sido asignado a {publicador.nombre} por {asignador} correctamente. Se ha enviado al Telegram del publicador')
             
-            pass
+            # Variables para enviar a Telegram
+            chat_id = Publicador.objects.get(pk=publicador).telegram_chatid
+            territorio = Territorio.objects.get(pk=territorio)
+            territorio_nombre = str(territorio.numero) + ' - ' + territorio.nombre
+            publicador = Publicador.objects.get(pk=publicador)
+            
+            if enviar_territorio_telegram(chat_id, file_path, territorio_nombre):
+                messages.success(request, f'Territorio {territorio_nombre} enviado a Telegram de {publicador.nombre} correctamente')
+                
+                return redirect(reverse("webTerritorios:asignar"))
+            else:
+                messages.error(request, 'Error al enviar territorio a Telegram')
+                return redirect(reverse("webTerritorios:asignar"))
+
+        # DIGITAL DESCARGAR NAVEGADOR
         elif request.POST.get('registrarPDFdigital'):
-            print("Registrar PDF Digital")
-            pass
+            file_path = preparar_y_generar_territorio(publicador, territorio, 'digital_publicador', solo_pdf=False)
+
+            # Notificar Administrador
+            territorio = Territorio.objects.get(pk=territorio)
+            territorio_nombre = str(territorio.numero) + ' - ' + territorio.nombre
+            publicador = Publicador.objects.get(pk=publicador)
+            publicador_nombre = publicador.nombre
+            enviar_mensaje_telegram(os.environ['TELEGRAM_ADMIN_CHAT_ID'], f'ℹ️ El territorio {territorio_nombre} ha sido asignado a {publicador_nombre} por {asignador} correctamente. Se ha descargado el territorio digitalmente')
+            
+            # Delayed Cleanup
+            thread_borrar = threading.Thread(target=borrar_despues_de_segundos, args=(file_path, 30))
+            thread_borrar.start()
+
+            return FileResponse(open(file_path, 'rb'), as_attachment=True)
+
+        # IMPRESO DESCARGAR
         elif request.POST.get('registrarPDFimprimir'):
-            print("Registrar PDF Imprimir")
-            pass
+            
+            file_path = preparar_y_generar_territorio(publicador, territorio, 'impreso_asignador', solo_pdf=False)
+            
+            # Notificar Administrador
+            territorio = Territorio.objects.get(pk=territorio)
+            territorio_nombre = str(territorio.numero) + ' - ' + territorio.nombre
+            publicador = Publicador.objects.get(pk=publicador)
+            publicador_nombre = publicador.nombre
+            enviar_mensaje_telegram(os.environ['TELEGRAM_ADMIN_CHAT_ID'], f'ℹ️ El territorio {territorio_nombre} ha sido asignado a {publicador_nombre} por {asignador} correctamente. Se ha descargado el territorio para imprimir')
+            
+            # Delayed Cleanup
+            thread_borrar = threading.Thread(target=borrar_despues_de_segundos, args=(file_path, 30))
+            thread_borrar.start()
+
+            return FileResponse(open(file_path, 'rb'), as_attachment=True)
         
-        return redirect(reverse("webTerritorios:asignar"))
 
 class NewSordoForm(forms.ModelForm):
 
@@ -252,7 +344,7 @@ class AsignacionViewSet(viewsets.ModelViewSet):
             queryset = Asignacion.objects.filter(
                 Q(territorio__congregacion=id_congregacion) & 
                 Q(fecha_fin__isnull=True)
-            )
+            ).order_by('fecha_asignacion')
             serializer = AsignacionSerializer(queryset, many=True)
             return Response(serializer.data)
         
@@ -278,11 +370,12 @@ def asignar_territorio(request):
             publicador_id = data.get('publicador_id')
             territorio_id = data.get('territorio_id')
             metodo_entrega = data.get('metodo_entrega')
+            solo_pdf = data.get('solo_pdf')
             
-            file_path = preparar_y_generar_territorio(publicador_id, territorio_id, metodo_entrega, solo_pdf=False)
+            file_path = preparar_y_generar_territorio(publicador_id, territorio_id, metodo_entrega, solo_pdf)
 
             chat_id = Publicador.objects.get(pk=publicador_id).telegram_chatid
-            territorio = Territorio.get(pk=territorio_id)
+            territorio = Territorio.objects.get(pk=territorio_id)
             territorio_nombre = str(territorio.numero) + ' - ' + territorio.nombre
 
             # Llenar y Enviar Territorio

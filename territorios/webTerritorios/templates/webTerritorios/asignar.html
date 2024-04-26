@@ -12,13 +12,21 @@
 
             <div class="d-flex justify-content-center align-items-center flex-column" style="height: 100vh;">
 
+                {% if messages %}
+                <ul class="messages">
+                    {% for message in messages %}
+                    <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}" role="alert">{{ message }}</div>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+
                     <h1 class="m-4">Asignar Territorio</h1>
 
                     <div class="d-flex justify-content-between align-items-center m-4">
                         <div class="m-2" style="width: 30vw;">
                             <label for="territorioSelector">Territorio</label>
                             <select class="form-control" name="territorio" id="territorioSelector" required>
-                                <option value="" disabled selected>Seleccione un Territorio</option>
+                                <option value="0" disabled selected>Seleccione un Territorio</option>
                                 {% for territorio in territorios %}
                                     <option value="{{ territorio.id }}">{{ territorio.numero }} - {{ territorio.nombre }}</option>
                                 {% endfor %}
@@ -27,7 +35,7 @@
                         <div class="m-2" style="width: 30vw;">
                             <label for="publicadorSelector">Publicador</label>
                             <select class="form-control" name="publicador" id="publicadorSelector" required>
-                                <option value="" disabled selected>Seleccione un Publicador</option>
+                                <option value="0" disabled selected>Seleccione un Publicador</option>
                                 {% for publicador in publicadores %}
                                     <option value="{{ publicador.id }}">{{ publicador.nombre }}</option>
                                 {% endfor %}
@@ -36,8 +44,8 @@
                     </div>
                     <div  class="d-flex justify-content-between m-4">
                             <input type="submit" name="enviarTelegram" value="Enviar al Telegram" class="btn btn-primary m-2" />
-                            <input type="submit" name="registrarPDFdigital" value="Registrar y descargar PDF Digital" class="btn btn-secondary m-2"/>
-                            <input type="submit" name="registrarPDFimprimir" value="Registrar y descargar PDF para Imprimir" class="btn btn-danger m-2"/>
+                            <input type="submit" name="registrarPDFdigital" value="Registrar y descargar PDF Digital" class="btn btn-secondary m-2" onclick="reload();" />
+                            <input type="submit" name="registrarPDFimprimir" value="Registrar y descargar PDF para Imprimir" class="btn btn-danger m-2" onclick="reload();" />
                     </div>
             </div>
         </form>
@@ -45,9 +53,11 @@
 
 <script>
 
-    document.querySelector('#asignarTerritorioForm').addEventListener('submit', async (e) => {
-        
-    });
+    async function reload() {
+        await new Promise(r => setTimeout(r, 3000));
+        document.querySelector('#asignarTerritorioForm').reset();
+        window.location.href = window.location.href;
+    }
 
 </script>
 {% endblock %}
