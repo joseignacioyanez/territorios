@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='utf-8'?>
+<gpx version="1.1" creator="OsmAnd Maps 4.7.3 (4.7.3.10)" xmlns="http://www.topografix.com/GPX/1/1" xmlns:osmand="https://osmand.net" xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+	<metadata>
+		<name>Sordos - 27 de abril del 2024</name>
+		<time>2024-04-27</time>
+	</metadata>
+	<extensions>
+		<osmand:points_groups>
+			<osmand:group background="circle" name="Sordos - 27 de abril del 2024" color="#ffff0000" icon="special_marker" />
+		</osmand:points_groups>
+	</extensions>
+</gpx>
