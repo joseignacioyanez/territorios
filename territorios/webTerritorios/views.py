@@ -9,6 +9,7 @@ from django.shortcuts import redirect, render
 from django.urls import reverse, reverse_lazy
 from django.utils.safestring import SafeString
 from django.views import View
+import pandas as pd
 import requests
 
 from .models import Asignacion, Sordo, Publicador, Territorio, Congregacion, EstadoSordo
@@ -390,3 +391,4 @@ def asignar_territorio(request):
             return JsonResponse({'error': str(e)}, status=500)
     else:
         return JsonResponse({'error': 'Método no permitido'}, status=405)
+

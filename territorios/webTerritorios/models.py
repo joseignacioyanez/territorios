@@ -20,7 +20,7 @@ class EstadoSordo(models.Model):
     nombre = models.CharField(max_length=20)
 
     def __str__(self):
-        return f"{self.id} - {self.nombre}"
+        return f"{self.nombre}"
     
     class Meta:
         verbose_name = 'Estado del Sordo'
@@ -72,14 +72,15 @@ class Sordo(models.Model):
     fecha_ultimo_cambio = models.DateTimeField(auto_now=True) #Se actualiza la fecha de modificacion automaticamente
 
     def __str__(self):
-        return f"{self.codigo} - {self.nombre} - {self.territorio.nombre} - {self.estado_sordo}"
-    
+        nombre = self.nombre if self.nombre else ""
+        territorio = self.territorio.nombre if self.territorio else "Sin Asignar"
+        return f"{self.codigo} - {nombre} - {territorio} - {self.estado_sordo}"
+
     def save(self, *args, **kwargs):
         if not self.pk:  # Only for new instances
             # Get the count of existing sordos for this congregacion
             existing_sordos_count = Sordo.objects.filter(congregacion=self.congregacion).count()
-            if existing_sordos_count == 0:
-                existing_sordos_count = 1
+            existing_sordos_count += 1
             # Set the local_id for this instance
             self.local_id = existing_sordos_count
 

@@ -9,6 +9,8 @@ from.models import *
 class SordoAdmin(admin.ModelAdmin):
     exclude = ('codigo', 'local_id')
 
+    list_filter = ('congregacion', 'estado_sordo', 'territorio', 'publicador_estudio')
+
     # Mostrar campos como TextArea
     def get_form(self, request, obj=None, **kwargs):
         kwargs['widgets'] = {

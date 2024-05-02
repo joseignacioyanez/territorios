@@ -100,8 +100,13 @@ async def asignar(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 # FLUJO ASIGNAR - FASE 1
 # Guarda el Publicador, valida que no existan otras asignaciones
 async def publicador(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    context.user_data['user_asignado_id'] = update.message.text.split(' - ')[0]
-    context.user_data['user_asignado_nombre'] = update.message.text.split(' - ')[1]
+    try:
+        context.user_data['user_asignado_id'] = update.message.text.split(' - ')[0]
+        context.user_data['user_asignado_nombre'] = update.message.text.split(' - ')[1]
+    except Exception as e:
+        notify_exception(e)
+        await update.message.reply_text("Error al obtener el Publicador. Por favor contacta a un administrador.")
+        return ConversationHandler.END
 
     # Verificar si el usuario tiene Asignaciones Pendientes de entregar
     try:
