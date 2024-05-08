@@ -12,183 +12,162 @@ def obtener_fecha_titulo():
     fecha_formateada = fecha.strftime("%d de %B del %Y")
     return fecha_formateada
 
-NOMBRE_KML = f"Sordos - {obtener_fecha_titulo()}"
+NOMBRE_KML = f"Sordos Sangolqui - {obtener_fecha_titulo()}"
+DESCRIPCION = "Territorios de Señas Sangolquí"
 
 root = ET.Element("kml")
 root.set("xmlns", "http://www.opengis.net/kml/2.2")
 
 document = ET.SubElement(root, "Document")
 
-name = ET.SubElement(document, "name")
-name.text = NOMBRE_KML
-
-description = ET.SubElement(document, "description")
-description.text = "Territorios de Señas Sangolquí"
-
 estilos = b'''\
 <Styles>
-<Style id="icon-503-62AF44-normal">
+  <Style id="placemark-red">
     <IconStyle>
-        <color>ff44af62</color>
-        <scale>1.1</scale>
-        <Icon>
-            <href>https://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
-        </Icon>
-        <hotSpot x="16" xunits="pixels" y="32" yunits="insetPixels"/>
+      <Icon>
+        <href>http://maps.me/placemarks/placemark-red.png</href>
+      </Icon>
     </IconStyle>
-    <LabelStyle>
-        <scale>0</scale>
-    </LabelStyle>
-    </Style>
-    <Style id="icon-503-62AF44-highlight">
-        <IconStyle>
-        <color>ff44af62</color>
-        <scale>1.1</scale>
-        <Icon>
-            <href>https://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
-        </Icon>
-        <hotSpot x="16" xunits="pixels" y="32" yunits="insetPixels"/>
-        </IconStyle>
-        <LabelStyle>
-        <scale>1.1</scale>
-        </LabelStyle>
-    </Style>
-    <StyleMap id="icon-503-62AF44">
-        <Pair>
-        <key>normal</key>
-        <styleUrl>#icon-503-62AF44-normal</styleUrl>
-        </Pair>
-        <Pair>
-        <key>highlight</key>
-        <styleUrl>#icon-503-62AF44-highlight</styleUrl>
-        </Pair>
-        </StyleMap>
-        <Style id="icon-503-DB4436-normal">
-        <IconStyle>
-            <color>ff3644db</color>
-            <scale>1.1</scale>
-            <Icon>
-            <href>https://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
-            </Icon>
-            <hotSpot x="16" xunits="pixels" y="32" yunits="insetPixels"/>
-        </IconStyle>
-        <LabelStyle>
-            <scale>0</scale>
-        </LabelStyle>
-        </Style>
-        <Style id="icon-503-DB4436-highlight">
-        <IconStyle>
-            <color>ff3644db</color>
-            <scale>1.1</scale>
-            <Icon>
-            <href>https://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
-            </Icon>
-            <hotSpot x="16" xunits="pixels" y="32" yunits="insetPixels"/>
-        </IconStyle>
-        <LabelStyle>
-            <scale>1.1</scale>
-        </LabelStyle>
-        </Style>
-        <StyleMap id="icon-503-DB4436">
-        <Pair>
-            <key>normal</key>
-            <styleUrl>#icon-503-DB4436-normal</styleUrl>
-        </Pair>
-        <Pair>
-            <key>highlight</key>
-            <styleUrl>#icon-503-DB4436-highlight</styleUrl>
-        </Pair>
-        </StyleMap>
-        <Style id="icon-503-DB4436-nodesc-normal">
-        <IconStyle>
-            <color>ff3644db</color>
-            <scale>1.1</scale>
-            <Icon>
-            <href>https://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
-            </Icon>
-            <hotSpot x="16" xunits="pixels" y="32" yunits="insetPixels"/>
-        </IconStyle>
-        <LabelStyle>
-            <scale>0</scale>
-        </LabelStyle>
-        <BalloonStyle>
-            <text><![CDATA[<h3>$[name]</h3>]]></text>
-        </BalloonStyle>
-        </Style>
-        <Style id="icon-503-DB4436-nodesc-highlight">
-        <IconStyle>
-            <color>ff3644db</color>
-            <scale>1.1</scale>
-            <Icon>
-            <href>https://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
-            </Icon>
-            <hotSpot x="16" xunits="pixels" y="32" yunits="insetPixels"/>
-        </IconStyle>
-        <LabelStyle>
-            <scale>1.1</scale>
-        </LabelStyle>
-        <BalloonStyle>
-            <text><![CDATA[<h3>$[name]</h3>]]></text>
-        </BalloonStyle>
-        </Style>
-        <StyleMap id="icon-503-DB4436-nodesc">
-        <Pair>
-            <key>normal</key>
-            <styleUrl>#icon-503-DB4436-nodesc-normal</styleUrl>
-        </Pair>
-        <Pair>
-            <key>highlight</key>
-            <styleUrl>#icon-503-DB4436-nodesc-highlight</styleUrl>
-        </Pair>
-        </StyleMap>
-        <Style id="poly-DB4436-2501-0-nodesc-normal">
-        <LineStyle>
-            <color>ff3644db</color>
-            <width>2.501</width>
-        </LineStyle>
-        <PolyStyle>
-            <color>003644db</color>
-            <fill>1</fill>
-            <outline>1</outline>
-        </PolyStyle>
-        <BalloonStyle>
-            <text><![CDATA[<h3>$[name]</h3>]]></text>
-        </BalloonStyle>
-        </Style>
-        <Style id="poly-DB4436-2501-0-nodesc-highlight">
-        <LineStyle>
-            <color>ff3644db</color>
-            <width>3.7515</width>
-        </LineStyle>
-        <PolyStyle>
-            <color>003644db</color>
-            <fill>1</fill>
-            <outline>1</outline>
-        </PolyStyle>
-        <BalloonStyle>
-            <text><![CDATA[<h3>$[name]</h3>]]></text>
-        </BalloonStyle>
-        </Style>
-        <StyleMap id="poly-DB4436-2501-0-nodesc">
-        <Pair>
-            <key>normal</key>
-            <styleUrl>#poly-DB4436-2501-0-nodesc-normal</styleUrl>
-        </Pair>
-        <Pair>
-            <key>highlight</key>
-            <styleUrl>#poly-DB4436-2501-0-nodesc-highlight</styleUrl>
-        </Pair>
-        </StyleMap>
+  </Style>
+  <Style id="placemark-blue">
+    <IconStyle>
+      <Icon>
+        <href>http://maps.me/placemarks/placemark-blue.png</href>
+      </Icon>
+    </IconStyle>
+  </Style>
+  <Style id="placemark-purple">
+    <IconStyle>
+      <Icon>
+        <href>http://maps.me/placemarks/placemark-purple.png</href>
+      </Icon>
+    </IconStyle>
+  </Style>
+  <Style id="placemark-yellow">
+    <IconStyle>
+      <Icon>
+        <href>http://maps.me/placemarks/placemark-yellow.png</href>
+      </Icon>
+    </IconStyle>
+  </Style>
+  <Style id="placemark-pink">
+    <IconStyle>
+      <Icon>
+        <href>http://maps.me/placemarks/placemark-pink.png</href>
+      </Icon>
+    </IconStyle>
+  </Style>
+  <Style id="placemark-brown">
+    <IconStyle>
+      <Icon>
+        <href>http://maps.me/placemarks/placemark-brown.png</href>
+      </Icon>
+    </IconStyle>
+  </Style>
+  <Style id="placemark-green">
+    <IconStyle>
+      <Icon>
+        <href>http://maps.me/placemarks/placemark-green.png</href>
+      </Icon>
+    </IconStyle>
+  </Style>
+  <Style id="placemark-orange">
+    <IconStyle>
+      <Icon>
+        <href>http://maps.me/placemarks/placemark-orange.png</href>
+      </Icon>
+    </IconStyle>
+  </Style>
+  <Style id="placemark-deeppurple">
+    <IconStyle>
+      <Icon>
+        <href>http://maps.me/placemarks/placemark-deeppurple.png</href>
+      </Icon>
+    </IconStyle>
+  </Style>
+  <Style id="placemark-lightblue">
+    <IconStyle>
+      <Icon>
+        <href>http://maps.me/placemarks/placemark-lightblue.png</href>
+      </Icon>
+    </IconStyle>
+  </Style>
+  <Style id="placemark-cyan">
+    <IconStyle>
+      <Icon>
+        <href>http://maps.me/placemarks/placemark-cyan.png</href>
+      </Icon>
+    </IconStyle>
+  </Style>
+  <Style id="placemark-teal">
+    <IconStyle>
+      <Icon>
+        <href>http://maps.me/placemarks/placemark-teal.png</href>
+      </Icon>
+    </IconStyle>
+  </Style>
+  <Style id="placemark-lime">
+    <IconStyle>
+      <Icon>
+        <href>http://maps.me/placemarks/placemark-lime.png</href>
+      </Icon>
+    </IconStyle>
+  </Style>
+  <Style id="placemark-deeporange">
+    <IconStyle>
+      <Icon>
+        <href>http://maps.me/placemarks/placemark-deeporange.png</href>
+      </Icon>
+    </IconStyle>
+  </Style>
+  <Style id="placemark-gray">
+    <IconStyle>
+      <Icon>
+        <href>http://maps.me/placemarks/placemark-gray.png</href>
+      </Icon>
+    </IconStyle>
+  </Style>
+  <Style id="placemark-bluegray">
+    <IconStyle>
+      <Icon>
+        <href>http://maps.me/placemarks/placemark-bluegray.png</href>
+      </Icon>
+    </IconStyle>
+  </Style>
 </Styles>\
 '''
 
 estilos = ET.parse(BytesIO(estilos))
 estilos_root = estilos.getroot()
 
-for estilo in estilos_root.iter('StyleMap'):
-    document.append(estilo)
 for estilo in estilos_root.iter('Style'):
     document.append(estilo)
+
+name = ET.SubElement(document, "name")
+name.text = NOMBRE_KML
+
+description = ET.SubElement(document, "description")
+description.text = DESCRIPCION
+
+visibility = ET.SubElement(document, "visibility")
+visibility.text = "1"
+
+# Extended Data
+extended_data = ET.SubElement(document, "ExtendedData")
+extended_data.set("xmlns:mwm", "http://maps.me/")
+mwm_name = ET.SubElement(extended_data, "mwm:name")
+mwm_lang = ET.SubElement(mwm_name, "mwm:lang")
+mwm_lang.set("code", "default")
+mwm_lang.text = NOMBRE_KML
+mwm_annotation = ET.SubElement(extended_data, "mwm:annotation")
+mwm_description = ET.SubElement(extended_data, "mwm:description")
+mwmw_lang_2 = ET.SubElement(mwm_description, "mwm:lang")
+mwmw_lang_2.set("code", "default")
+mwmw_lang_2.text = DESCRIPCION
+mwm_last_modified = ET.SubElement(extended_data, "mwm:lastModified")
+mwm_last_modified.text = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+mwm_access_Rules = ET.SubElement(extended_data, "mwm:accessRules")
+mwm_access_Rules.text = "Local"
 
 
 data = {'congregacion_id': 1}
@@ -197,21 +176,21 @@ sordos =  requests.post('http://localhost:8000/api/sordos/para_kml_y_gpx/', json
 for sordo in sordos:
     placemark = ET.SubElement(document, "Placemark")
     
-    name = ET.SubElement(placemark, "Name")
+    name = ET.SubElement(placemark, "name")
     name.text = sordo['codigo'] + ' - ' + sordo['nombre'] + ' - ' + str(sordo['anio_nacimiento'])
     
-    #description = ET.SubElement(placemark, "description")
-    #description.text = f"{sordo['direccion']} -- {sordo['detalles_direccion']}"
+    description = ET.SubElement(placemark, "description")
+    description.text = f"{sordo['direccion']} -- {sordo['detalles_direccion']}"
     
     styleUrl = ET.SubElement(placemark, "styleUrl")
     if sordo['publicador_estudio']:
-        styleUrl.text = "#icon-503-62AF44"
+        styleUrl.text = "#placemark-lime"
     else:
-        styleUrl.text = "#icon-503-DB4436"
+        styleUrl.text = "#placemark-red"
     
     point = ET.SubElement(placemark, "Point")
     coordinates = ET.SubElement(point, "coordinates")
-    coordinates.text = f"{sordo['gps_longitud']},{sordo['gps_latitud']},0"
+    coordinates.text = f"{sordo['gps_longitud']},{sordo['gps_latitud']}"
     
     #extended_data = ET.SubElement(placemark, "ExtendedData")
     #data = ET.SubElement(extended_data, "Data")
@@ -222,24 +201,3 @@ for sordo in sordos:
 tree = ET.ElementTree(root)
 ET.indent(tree, space="\t", level=0)
 tree.write("territorios.kml", xml_declaration=True,encoding='utf-8', method="xml")
-
-'''
-style = ET.SubElement(document, "Style")
-style.set("id", "icon-503-62AF44-normal")
-iconstyle = ET.SubElement(style, "IconStyle")
-color = ET.SubElement(iconstyle, "color")
-color.text = "ff44af62"
-scale = ET.SubElement(iconstyle, "scale")
-scale.text = "1.1"
-icon = ET.SubElement(iconstyle, "Icon")
-href = ET.SubElement(icon, "href")
-href.text = "https://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png"
-hotspot = ET.SubElement(iconstyle, "hotSpot")
-hotspot.set("x", "16")
-hotspot.set("xunits", "pixels")
-hotspot.set("y", "32")
-hotspot.set("yunits", "insetPixels")
-labelstyle = ET.SubElement(style, "LabelStyle")
-scale = ET.SubElement(labelstyle, "scale")
-scale.text = 0
-'''
