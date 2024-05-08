@@ -30,6 +30,8 @@ time.text = str(datetime.now().date())
                 
 # Puntos
 
+# Hola
+
 extensions = ET.SubElement(root, "extensions")
 points_groups = ET.SubElement(extensions, "osmand:points_groups")
 group = ET.SubElement(points_groups, "osmand:group")
