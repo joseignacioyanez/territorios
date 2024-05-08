@@ -41,24 +41,3 @@ group.set("icon", "special_marker")
 tree = ET.ElementTree(root)
 ET.indent(tree, space="\t", level=0)
 tree.write("territorios.gpx", xml_declaration=True,encoding='utf-8', method="xml")
-
-'''
-style = ET.SubElement(document, "Style")
-style.set("id", "icon-503-62AF44-normal")
-iconstyle = ET.SubElement(style, "IconStyle")
-color = ET.SubElement(iconstyle, "color")
-color.text = "ff44af62"
-scale = ET.SubElement(iconstyle, "scale")
-scale.text = "1.1"
-icon = ET.SubElement(iconstyle, "Icon")
-href = ET.SubElement(icon, "href")
-href.text = "https://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png"
-hotspot = ET.SubElement(iconstyle, "hotSpot")
-hotspot.set("x", "16")
-hotspot.set("xunits", "pixels")
-hotspot.set("y", "32")
-hotspot.set("yunits", "insetPixels")
-labelstyle = ET.SubElement(style, "LabelStyle")
-scale = ET.SubElement(labelstyle, "scale")
-scale.text = 0
-'''

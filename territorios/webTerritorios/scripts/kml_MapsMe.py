@@ -198,6 +198,36 @@ for sordo in sordos:
     #value = ET.SubElement(data, "value")
     #value.text = f"{sordo['territorio_numero']} - {sordo['territorio_nombre']}"
 
+data = {'congregacion_id': 1}
+territorios =  requests.post('http://localhost:8000/api/territorios/congregacion/', json = data).json()
+
+for territorio in territorios:
+
+    if territorio['numero'] == 0:
+            continue
+    
+    placemark = ET.SubElement(document, "Placemark")
+    name = ET.SubElement(placemark, "name")
+    name.text = f"{territorio['numero']} - {territorio['nombre']}"
+    line_string = ET.SubElement(placemark, "LineString")
+    tessellate = ET.SubElement(line_string, "tessellate")
+    tessellate.text = "1"
+    coordinates = ET.SubElement(line_string, "coordinates")
+
+    coordinates_text = "\n"
+    ya_primero = False
+    primero = ""
+
+    for sordo in sordos:
+        if sordo['territorio_numero'] == territorio['numero']:
+            coordinates_text += f"{sordo['gps_longitud']},{sordo['gps_latitud']},0\n"
+            if not ya_primero:
+                primero = f"{sordo['gps_longitud']},{sordo['gps_latitud']},0\n"
+                ya_primero = True
+    
+    coordinates_text += primero
+    coordinates.text = coordinates_text
+
 tree = ET.ElementTree(root)
 ET.indent(tree, space="\t", level=0)
 tree.write("territorios.kml", xml_declaration=True,encoding='utf-8', method="xml")

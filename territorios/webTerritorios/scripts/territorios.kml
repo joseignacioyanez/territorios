@@ -124,7 +124,7 @@
 			<mwm:description>
 				<mwm:lang code="default">Territorios de Señas Sangolquí</mwm:lang>
 			</mwm:description>
-			<mwm:lastModified>2024-05-08T16:12:26.251900Z</mwm:lastModified>
+			<mwm:lastModified>2024-05-08T16:58:34.997026Z</mwm:lastModified>
 			<mwm:accessRules>Local</mwm:accessRules>
 		</ExtendedData>
 		<Placemark>
@@ -998,6 +998,307 @@
 			<Point>
 				<coordinates>-78.375594,-0.366370</coordinates>
 			</Point>
+		</Placemark>
+		<Placemark>
+			<name>1 - Amaguaña</name>
+			<LineString>
+				<tessellate>1</tessellate>
+				<coordinates>
+-78.504615,-0.378623,0
+-78.503652,-0.382515,0
+-78.517428,-0.395829,0
+-78.508287,-0.375555,0
+-78.523117,-0.377854,0
+-78.504615,-0.378623,0
+</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>2 - Carapungo</name>
+			<LineString>
+				<tessellate>1</tessellate>
+				<coordinates>
+-78.499640,-0.368238,0
+-78.498379,-0.360318,0
+-78.499672,-0.368163,0
+-78.511453,-0.359840,0
+-78.499640,-0.368238,0
+</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>3 - Chaupitena</name>
+			<LineString>
+				<tessellate>1</tessellate>
+				<coordinates>
+-78.482803,-0.349592,0
+-78.484482,-0.331680,0
+-78.484493,-0.331634,0
+-78.484772,-0.340783,0
+-78.483110,-0.339345,0
+-78.482803,-0.349592,0
+</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>4 - Cuendina</name>
+			<LineString>
+				<tessellate>1</tessellate>
+				<coordinates>
+-78.476393,-0.378618,0
+-78.465543,-0.360285,0
+-78.468610,-0.369301,0
+-78.468610,-0.369301,0
+-78.476393,-0.378618,0
+</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>5 - Turucocha &amp; Cotogchoa</name>
+			<LineString>
+				<tessellate>1</tessellate>
+				<coordinates>
+-78.453186,-0.365557,0
+-78.445998,-0.348626,0
+-78.447658,-0.347497,0
+-78.453510,-0.358110,0
+-78.444921,-0.347508,0
+-78.453186,-0.365557,0
+</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>6 - Selva Alegre &amp; San Fernando</name>
+			<LineString>
+				<tessellate>1</tessellate>
+				<coordinates>
+-78.419220,-0.374960,0
+-78.419199,-0.374970,0
+-78.431119,-0.344268,0
+-78.431797,-0.346901,0
+-78.419220,-0.374960,0
+</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>7 - Santa Rosa</name>
+			<LineString>
+				<tessellate>1</tessellate>
+				<coordinates>
+-78.456680,-0.339820,0
+-78.454694,-0.339099,0
+-78.446377,-0.340658,0
+-78.449692,-0.336076,0
+-78.456680,-0.339820,0
+</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>8 - Sangolquí</name>
+			<LineString>
+				<tessellate>1</tessellate>
+				<coordinates>
+-78.442765,-0.331103,0
+-78.443333,-0.333280,0
+-78.445377,-0.331776,0
+-78.442765,-0.331103,0
+</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>9 - San Pedro A</name>
+			<LineString>
+				<tessellate>1</tessellate>
+				<coordinates>
+-78.473588,-0.325972,0
+-78.461206,-0.321182,0
+-78.464951,-0.324471,0
+-78.473588,-0.325972,0
+</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>10 - San Pedro B</name>
+			<LineString>
+				<tessellate>1</tessellate>
+				<coordinates>
+-78.458610,-0.320066,0
+-78.462601,-0.318787,0
+-78.460965,-0.315999,0
+-78.456109,-0.320755,0
+-78.458610,-0.320066,0
+</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>11 - 6 de Junio</name>
+			<LineString>
+				<tessellate>1</tessellate>
+				<coordinates>
+-78.477189,-0.313380,0
+-78.473376,-0.314666,0
+-78.481580,-0.313259,0
+-78.481661,-0.313227,0
+-78.477599,-0.313678,0
+-78.477189,-0.313380,0
+</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>12 - La Salle</name>
+			<LineString>
+				<tessellate>1</tessellate>
+				<coordinates>
+-78.492717,-0.303591,0
+-78.494986,-0.316126,0
+-78.495042,-0.316124,0
+-78.492717,-0.303591,0
+</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>13 - Conocoto A</name>
+			<LineString>
+				<tessellate>1</tessellate>
+				<coordinates>
+-78.465994,-0.299358,0
+-78.474869,-0.295388,0
+-78.471710,-0.293448,0
+-78.471648,-0.293402,0
+-78.473264,-0.290796,0
+-78.465994,-0.299358,0
+</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>14 - Conocoto B</name>
+			<LineString>
+				<tessellate>1</tessellate>
+				<coordinates>
+-78.481529,-0.291649,0
+-78.486590,-0.285963,0
+-78.490343,-0.288696,0
+-78.492081,-0.287556,0
+-78.481529,-0.291649,0
+</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>15 - Monserrat</name>
+			<LineString>
+				<tessellate>1</tessellate>
+				<coordinates>
+-78.500829,-0.262085,0
+-78.498961,-0.274699,0
+-78.500160,-0.269073,0
+-78.492073,-0.280027,0
+-78.495074,-0.279638,0
+-78.500829,-0.262085,0
+</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>16 - Puente 7</name>
+			<LineString>
+				<tessellate>1</tessellate>
+				<coordinates>
+-78.473824,-0.263190,0
+-78.471100,-0.276984,0
+-78.474021,-0.278849,0
+-78.477414,-0.281032,0
+-78.470019,-0.276769,0
+-78.473824,-0.263190,0
+</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>17 - Armenia A</name>
+			<LineString>
+				<tessellate>1</tessellate>
+				<coordinates>
+-78.465039,-0.268196,0
+-78.457046,-0.274248,0
+-78.481530,-0.264920,0
+-78.465039,-0.268196,0
+</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>18 - Armenia B</name>
+			<LineString>
+				<tessellate>1</tessellate>
+				<coordinates>
+-78.466190,-0.263317,0
+-78.462971,-0.266589,0
+-78.462193,-0.264760,0
+-78.464696,-0.264969,0
+-78.466190,-0.263317,0
+</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>19 - Guangopolo</name>
+			<LineString>
+				<tessellate>1</tessellate>
+				<coordinates>
+-78.449587,-0.255075,0
+-78.446773,-0.254478,0
+-78.449587,-0.255075,0
+</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>20 - Puengasí</name>
+			<LineString>
+				<tessellate>1</tessellate>
+				<coordinates>
+-78.500876,-0.251730,0
+-78.497346,-0.249587,0
+-78.494982,-0.249375,0
+-78.498682,-0.246484,0
+-78.492968,-0.245442,0
+-78.500876,-0.251730,0
+</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>21 - Peaje</name>
+			<LineString>
+				<tessellate>1</tessellate>
+				<coordinates>
+-78.487185,-0.238795,0
+-78.487632,-0.248310,0
+-78.484719,-0.241888,0
+-78.487618,-0.243094,0
+-78.485515,-0.247711,0
+-78.487185,-0.238795,0
+</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>22 - Alangasí</name>
+			<LineString>
+				<tessellate>1</tessellate>
+				<coordinates>
+-78.415745,-0.311272,0
+-78.414444,-0.303718,0
+-78.415745,-0.311272,0
+</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>23 - Pintag</name>
+			<LineString>
+				<tessellate>1</tessellate>
+				<coordinates>
+-78.367828,-0.375989,0
+-78.374030,-0.371970,0
+-78.375626,-0.366405,0
+-78.374107,-0.371561,0
+-78.375594,-0.366370,0
+-78.367828,-0.375989,0
+</coordinates>
+			</LineString>
 		</Placemark>
 	</Document>
 </kml>
