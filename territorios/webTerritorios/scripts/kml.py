@@ -3,6 +3,9 @@ import locale
 import xml.etree.ElementTree as ET
 from io import BytesIO
 
+import requests
+
+
 def obtener_fecha_titulo():
     fecha = datetime.now().date()
     locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
@@ -188,6 +191,33 @@ for estilo in estilos_root.iter('Style'):
     document.append(estilo)
 
 
+data = {'congregacion_id': 1}
+sordos =  requests.post('http://localhost:8000/api/sordos/para_kml_y_gpx/', json = data).json()
+
+for sordo in sordos:
+    placemark = ET.SubElement(document, "Placemark")
+    
+    name = ET.SubElement(placemark, "Name")
+    name.text = sordo['codigo'] + ' - ' + sordo['nombre'] + ' - ' + str(sordo['anio_nacimiento'])
+    
+    #description = ET.SubElement(placemark, "description")
+    #description.text = f"{sordo['direccion']} -- {sordo['detalles_direccion']}"
+    
+    styleUrl = ET.SubElement(placemark, "styleUrl")
+    if sordo['publicador_estudio']:
+        styleUrl.text = "#icon-503-62AF44"
+    else:
+        styleUrl.text = "#icon-503-DB4436"
+    
+    point = ET.SubElement(placemark, "Point")
+    coordinates = ET.SubElement(point, "coordinates")
+    coordinates.text = f"{sordo['gps_longitud']},{sordo['gps_latitud']},0"
+    
+    #extended_data = ET.SubElement(placemark, "ExtendedData")
+    #data = ET.SubElement(extended_data, "Data")
+    #data.set("name", "Territorio")
+    #value = ET.SubElement(data, "value")
+    #value.text = f"{sordo['territorio_numero']} - {sordo['territorio_nombre']}"
 
 tree = ET.ElementTree(root)
 ET.indent(tree, space="\t", level=0)

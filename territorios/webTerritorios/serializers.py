@@ -14,6 +14,11 @@ class EstadoSordoSerializer(serializers.ModelSerializer):
 
 class TerritorioSerializer(serializers.ModelSerializer):
     congregacion_nombre = serializers.CharField(source='congregacion.nombre', read_only=True)
+    cantidad_sordos = serializers.IntegerField(source='sordos.count', read_only=True)
+    # Revisar si existen asignaciones cuya fecha_fin sea null
+    asignado = serializers.SerializerMethodField(read_only=True)
+    def get_asignado(self, obj):
+        return obj.asignaciones_de_este_territorio.filter(fecha_fin__isnull=True).exists()
 
     class Meta:
         model = Territorio

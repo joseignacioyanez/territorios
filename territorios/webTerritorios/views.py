@@ -106,7 +106,7 @@ def preparar_y_generar_territorio(publicador_id, territorio_id, metodo_entrega, 
 
 def calcular_edad(anio_nacimiento):
     if anio_nacimiento is None:
-        return 0
+        return '¿?'
     else:
         return datetime.date.today().year - anio_nacimiento
 
@@ -295,9 +295,21 @@ class TerritorioViewSet(viewsets.ModelViewSet):
             return Response({'error': 'No se proporcionó el ID de la congregación en la solicitud'}, status=400)
         else:
             queryset = Territorio.objects.filter(
-                (Q(congregacion=congregacion_id) & ~Q(asignaciones_de_este_territorio__fecha_fin__isnull=True))
-                |(Q(congregacion=congregacion_id) & Q(asignaciones_de_este_territorio__isnull=True))
+                ( (Q(congregacion=congregacion_id) & ~Q(asignaciones_de_este_territorio__fecha_fin__isnull=True))
+                |(Q(congregacion=congregacion_id) & Q(asignaciones_de_este_territorio__isnull=True)) )
+                & Q(activo=True)
                 ).annotate(count=Count('asignaciones_de_este_territorio')).order_by('numero')
+            serializer = TerritorioSerializer(queryset, many=True)
+            return Response(serializer.data)
+    
+    @action(detail=False, methods=['post'])
+    def congregacion(self, request):
+        data = request.data
+        congregacion_id = data.get('congregacion_id')
+        if congregacion_id is None:
+            return Response({'error': 'No se proporcionó el ID de la congregación en la solicitud'}, status=400)
+        else:
+            queryset = Territorio.objects.filter(congregacion=congregacion_id)
             serializer = TerritorioSerializer(queryset, many=True)
             return Response(serializer.data)
 
@@ -330,6 +342,17 @@ class PublicadorViewSet(viewsets.ModelViewSet):
 class SordoViewSet(viewsets.ModelViewSet):
     queryset = Sordo.objects.all()
     serializer_class = SordoSerializer
+
+    @action(detail=False, methods=['post'])
+    def para_kml_y_gpx(self, request):
+        data = request.data
+        id_congregacion = data.get('congregacion_id')
+        if id_congregacion is None:
+            return Response({'error': 'No se proporcionó el ID de la congregación en la solicitud'}, status=400)
+        else:
+            queryset = Sordo.objects.filter(Q(congregacion=id_congregacion) & Q(estado_sordo__nombre='Habilitado') ).order_by('territorio__numero', 'territorio__nombre', 'codigo')
+            serializer = SordoSerializer(queryset, many=True)
+            return Response(serializer.data)
 
 class AsignacionViewSet(viewsets.ModelViewSet):
     queryset = Asignacion.objects.all()

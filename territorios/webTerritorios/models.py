@@ -73,7 +73,7 @@ class Sordo(models.Model):
 
     def __str__(self):
         nombre = self.nombre if self.nombre else ""
-        territorio = self.territorio.nombre if self.territorio else "Sin Asignar"
+        territorio = str(self.territorio.numero)+' - '+self.territorio.nombre if self.territorio else "❌ Sin Asignar"
         return f"{self.codigo} - {nombre} - {territorio} - {self.estado_sordo}"
 
     def save(self, *args, **kwargs):

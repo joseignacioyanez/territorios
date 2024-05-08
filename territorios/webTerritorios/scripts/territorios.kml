@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
 	<Document>
-		<name>Sordos - 27 de abril del 2024</name>
+		<name>Sordos - 08 de mayo del 2024</name>
 		<description>Territorios de Señas Sangolquí</description>
 		<StyleMap id="icon-503-62AF44">
 			<Pair>
@@ -155,5 +155,768 @@
 				<text>&lt;h3&gt;$[name]&lt;/h3&gt;</text>
 			</BalloonStyle>
 		</Style>
+		<Placemark>
+			<Name>SS-049 - Carla Karen Córdova - 2012</Name>
+			<styleUrl>#icon-503-62AF44</styleUrl>
+			<Point>
+				<coordinates>-78.485632,-0.345579,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-050 - Emma Paucar Sandoval - 1968</Name>
+			<styleUrl>#icon-503-62AF44</styleUrl>
+			<Point>
+				<coordinates>-78.478238,-0.325593,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-056 - Hector Dario Guanolema - 2003</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.422427,-0.390824,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-064 - Maricela Caiza - 1998</Name>
+			<styleUrl>#icon-503-62AF44</styleUrl>
+			<Point>
+				<coordinates>-78.465066,-0.268223,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-079 - Jhonatan Caza - 2000</Name>
+			<styleUrl>#icon-503-62AF44</styleUrl>
+			<Point>
+				<coordinates>-78.493516,-0.255606,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-087 - Saul Bautista - 2004</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.345222,-0.367248,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-119 - Transito Gualotuña - 1955</Name>
+			<styleUrl>#icon-503-62AF44</styleUrl>
+			<Point>
+				<coordinates>-78.486600,-0.285963,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-224 - Robert Llano - 1999</Name>
+			<styleUrl>#icon-503-62AF44</styleUrl>
+			<Point>
+				<coordinates>-78.428749,-0.348456,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-225 - Andrés Catota - 1997</Name>
+			<styleUrl>#icon-503-62AF44</styleUrl>
+			<Point>
+				<coordinates>-78.448480,-0.339732,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-040 - Paul Morales - 1995</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.471677,-0.293389,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-044 - Javier Orlando Salazar Analuisa - 0</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.453363,-0.358153,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-045 - Marco Patricio Salazar Analuisa - 1984</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.453379,-0.358276,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-085 - Juanita - 0</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.375600,-0.366380,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-112 - Maira Toaza - 1990</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.483110,-0.339343,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-120 - Yolanda Paucar - 2002</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.492145,-0.279904,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-025 - Cesar Augusto Berrones - 1994</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.504615,-0.378623,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-027 - Henry Saul Medina  Chiguano - 2001</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.503652,-0.382515,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-028 - Jose Carlos Araujo Casamen - 1955</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.517428,-0.395829,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-030 - Manuel Pachacama - 1967</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.508287,-0.375555,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-031 - Luis Hernan Teran Meneses - 1955</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.523117,-0.377854,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-068 - Hermina Suntaxi - 1967</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.499640,-0.368238,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-069 - Marco Rene Pachacama - 1982</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.498379,-0.360318,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-070 - Pedro Criollo - 1965</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.499672,-0.368163,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-143 - Bryan Stalin Chicaiza Chicaiza - 1996</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.511453,-0.359840,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-107 - Abel Elias Ñacato Chano - 1972</Name>
+			<styleUrl>#icon-503-62AF44</styleUrl>
+			<Point>
+				<coordinates>-78.482803,-0.349592,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-108 - Omar Tipanta - 1979</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.484482,-0.331680,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-109 - Martha Veronica Quishpe Pachacama - 0</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.484493,-0.331634,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-110 - Jorge Orlando Loachamin Andrade - 1953</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.484772,-0.340783,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-111 - Carlos Quishpe - 1988</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.483110,-0.339345,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-032 - Marco Patiño - 1976</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.476393,-0.378618,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-042 - Daniel Pachacama - 1999</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.465543,-0.360285,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-047 - Ana Paulina Delgado Guevara - 1990</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.468610,-0.369301,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-048 - Serafin Delgado Guevara - 2000</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.468610,-0.369301,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-055 - Jhoselin Judit Veles - 1999</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.453186,-0.365557,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-121 - Marco Alexander Paullin - 2002</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.445998,-0.348626,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-122 - Carolina Salas Pillajo - 1999</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.447658,-0.347497,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-132 - Ines Salazar Analuisa - 1974</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.453510,-0.358110,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-153 - Angel Alaba - 1970</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.444921,-0.347508,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-057 - Daniel Ushiña - 1988</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.419220,-0.374960,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-058 - Gladys Iza de Ushiña - 1988</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.419199,-0.374970,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-124 - Fernando Davila - 1964</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.431119,-0.344268,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-126 - Maria García Tejada - 0</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.431797,-0.346901,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-072 - Maria Julia Paucar - 1960</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.456680,-0.339820,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-075 - Elvia Cumbajin Simbaya - 1984</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.454694,-0.339099,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-208 - Rodolfo Minchalo - 1980</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.446377,-0.340658,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-213 - Magdalena Palacios - 1963</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.449692,-0.336076,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-105 - Janeth Salazar Analuisa - 1979</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.442765,-0.331103,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-106 - Maria (Lola) Toapanta - 1954</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.443333,-0.333280,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-200 - Marco Patricio Utreras Silva - 1975</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.445377,-0.331776,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-051 - José Pinzon - 1962</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.473588,-0.325972,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-101 - Fanny Grefa - 1978</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.461206,-0.321182,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-196 - Alexis Damian Sangucho Pizarro - 2007</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.464951,-0.324471,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-102 - Juan Carlos Puente - 1993</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.458610,-0.320066,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-103 - Margarita Lucía - 1981</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.462601,-0.318787,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-144 - Jhonatan Santiago Paucar Simbaña - 1997</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.460965,-0.315999,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-220 - Franklin Remigio Meneses Paredes - 1970</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.456109,-0.320755,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-016 - Andrea  Yajaiira Montesdeoca Naranjo - 1996</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.477189,-0.313380,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-017 - Sonia Gualotuña Oña - 1968</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.473376,-0.314666,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-019 - Juan Rubilova Mena - 1972</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.481580,-0.313259,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-020 - Zhaib Rubilova - 1972</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.481661,-0.313227,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-159 - Estela Patricia Novillo - 1963</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.477599,-0.313678,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-004 - Esmeralda Josefina Bastidas - 1961</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.492717,-0.303591,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-076 - Camila Pachacama Quinga - 1996</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.494986,-0.316126,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-077 - Carina Pachacama Quinga - 1990</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.495042,-0.316124,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-033 - Carlos Arauz - 1961</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.465994,-0.299358,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-034 - Clara Maldonado - 1968</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.474869,-0.295388,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-035 - Diego Morales - 1988</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.471710,-0.293448,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-036 - Jaime Morales - 1999</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.471648,-0.293402,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-041 - Viviana Fernandez Cheza - 2002</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.473264,-0.290796,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-039 - Morelia Anaí Almagro Quinchiguano - 2001</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.481529,-0.291649,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-114 - Juan Carlos Gualotuña - 1991</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.486590,-0.285963,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-116 - Maria Fernanda Batallas - 1978</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.490343,-0.288696,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-118 - Paúl Dominguez - 1997</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.492081,-0.287556,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-078 - Camila Alexandra Sislema - 2009</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.500829,-0.262085,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-080 - Thalía Catota - 1999</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.498961,-0.274699,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-082 - Sonia Ramos - None</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.500160,-0.269073,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-115 - Luis Armando Paucar - 1987</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.492073,-0.280027,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-117 - María Isabel Tigre Quinde - 1984</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.495074,-0.279638,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-061 - David - 2010</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.473824,-0.263190,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-074 - Luis Eduardo Ortega - 2004</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.471100,-0.276984,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-130 - Valeria Vinueza - 1997</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.474021,-0.278849,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-186 - Johana Loaiza - 1995</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.477414,-0.281032,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-226 - Luis - None</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.470019,-0.276769,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-062 - Edison Caiza Paucar - 1994</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.465039,-0.268196,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-063 - José María Paucar - 1964</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.457046,-0.274248,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-097 - Javier Guerra Jacome - 1973</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.481530,-0.264920,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-060 - Adrian Paucar Columba - 1994</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.466190,-0.263317,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-065 - Nancy Soledad Paucar - 1969</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.462971,-0.266589,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-066 - Patricio Columba - 1985</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.462193,-0.264760,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-067 - Silvio Alomoto - 1960</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.464696,-0.264969,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-052 - Damaris Daniela Galiche - 2004</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.449587,-0.255075,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-053 - Gloria Cecilia Columba Paucar - 1977</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.446773,-0.254478,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-090 - Mauricio Yugsi Catoa - 2000</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.500876,-0.251730,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-091 - Miguel Armando Coyago - 1988</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.497346,-0.249587,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-092 - Mónica Escobar - 1961</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.494982,-0.249375,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-095 - Melany Tipas - 2008</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.498682,-0.246484,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-137 - Alfonso Aguirre - 1990</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.492968,-0.245442,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-089 - Julio Alejandro Aguirre - 1991</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.487185,-0.238795,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-093 - Patricia Rivadeneira - 1970</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.487632,-0.248310,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-094 - Roberto Murillo Larco - 1980</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.484719,-0.241888,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-134 - Ines Rodriguez - 1954</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.487618,-0.243094,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-135 - María Galindo - 1959</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.485515,-0.247711,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-021 - Guadalupe Catagña - 2010</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.415745,-0.311272,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-023 - Marco Patricio (Paco) Atahualpa Salazar - 1963</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.414444,-0.303718,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-084 - Erick Guaman - 1996</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.367828,-0.375989,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-170 - Clever Sandoval - 2000</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.374030,-0.371970,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-171 - Gabriel Angel Mena - 0</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.375626,-0.366405,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-180 - Miguel Angel - 1975</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.374107,-0.371561,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<Name>SS-227 - Mariana - 0</Name>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<Point>
+				<coordinates>-78.375594,-0.366370,0</coordinates>
+			</Point>
+		</Placemark>
 	</Document>
 </kml>

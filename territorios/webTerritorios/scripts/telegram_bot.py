@@ -27,8 +27,7 @@ def formatear_fecha(fecha):
 
 def notify_exception(e: Exception) -> None:
     # Notify the admin about the exception
-    print(f"An exception occurred in the bot:\n\n{str(e)}\n\n{traceback.format_exc()}")
-    error_message = f"An exception occurred in the bot:\n\n{str(e)}\n\n{traceback.format_exc()}"
+    error_message = f"☢️ An exception occurred in the bot:\n\n{str(e)}\n\n{traceback.format_exc()}"
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage?chat_id={CHAT_ID_ADMIN}&text={error_message}"
     requests.get(url)
 
@@ -183,8 +182,14 @@ async def verificacion(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
 # Guarda el Territorio y pregunta por el Método de Entrega
 async def territorio(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
-    territorio_numero_deseado = update.message.text.split(' - ')[0]
-    territorio_nombre_deseado = update.message.text.split(' - ')[1]
+    try:
+        territorio_numero_deseado = update.message.text.split(' - ')[0]
+        territorio_nombre_deseado = update.message.text.split(' - ')[1]
+    except Exception as e:
+        notify_exception(e)
+        await update.message.reply_text("Error al obtener el Publicador. Por favor contacta a un administrador.")
+        return ConversationHandler.END
+
     
     for territorio in context.user_data['territorios_disponibles']:
         if str(territorio['numero']) == territorio_numero_deseado and territorio['nombre'] == territorio_nombre_deseado:
@@ -217,6 +222,10 @@ async def metodo_envio(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
         context.user_data['metodo_entrega'] = 'digital_asignador'
     elif update.message.text == 'Registrar asignación y Enviarme el PDF para Imprimir por aquí':
         context.user_data['metodo_entrega'] = 'impreso_asignador'
+    else:
+        await update.message.reply_text("Error al obtener el Publicador. Por favor contacta a un administrador.")
+        return ConversationHandler.END
+
 
     data = {
             'publicador_id': context.user_data['user_asignado_id'],
@@ -229,13 +238,17 @@ async def metodo_envio(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
 
     if response_raw.status_code == 200:
         
+        user_asignador_nombre = context.user_data['user_asignador']['nombre']
+
         if context.user_data['metodo_entrega'] == 'digital_publicador':
                 
             file = response.get('file_path')
             with open(file, 'rb') as document_file:
-                await context.bot.send_document(chat_id=response.get('chat_id'), document=document_file, caption=f"¡Hola {context.user_data['user_asignado_nombre']}! Se te ha asignado el territorio *{response.get('territorio')}*. \n Por favor visita las direcciones, predica a cualquier persona que salga e intenta empezar estudios. Anota si no encuentras a nadie y regresa en diferentes horarios. Puedes avisarnos si cualquier detalle es incorrecto. \n ¡Muchas gracias por tu trabajo! 🎒🤟🏼", parse_mode='markdown')
+                if response.get('chat_id'):
+                    await context.bot.send_document(chat_id=response.get('chat_id'), document=document_file, caption=f"¡Hola {context.user_data['user_asignado_nombre']}! Se te ha asignado el territorio *{response.get('territorio')}*. \n Por favor visita las direcciones, predica a cualquier persona que salga e intenta empezar estudios. Anota si no encuentras a nadie y regresa en diferentes horarios. Puedes avisarnos si cualquier detalle es incorrecto. \n ¡Muchas gracias por tu trabajo! 🎒🤟🏼", parse_mode='markdown')
+                else:
+                    await update.message.reply_document(document=document_file, caption='*Por favor hazle llegar el territorio al publicador porque no se registra su Telegram en el Sistema*. Gracias', parse_mode='markdown')
                 # Notificar al Administrador
-                user_asignador_nombre = context.user_data['user_asignador']['nombre']
                 await context.bot.send_message(chat_id=CHAT_ID_ADMIN, text=f"ℹ️ El territorio {response.get('territorio')} ha sido asignado a {context.user_data['user_asignado_nombre']} por {user_asignador_nombre} correctamente. Se ha enviado al Telegram del publicador")
 
         elif context.user_data['metodo_entrega'] == 'digital_asignador':
@@ -401,6 +414,82 @@ async def reporte_entregas(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("No se reconoce este usuario. Por favor contacta a un administrador.")
         return ConversationHandler.END
 
+#Flujo de Reporte de Territorios y cantidad de Sordos para Administradores
+async def reporte_territorios(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    try:
+        # Determinar ID de Usuario en base al ChatID de Telegram
+        data = {'telegram_chatid': update.message.chat_id}
+        usuario =  requests.post(BASE_URL_API+'publicadores/buscar_telegram_chatid/', json = data).json()[0]
+        context.user_data['user_data'] = usuario
+        grupos_usuario = usuario['user']['groups']
+        
+        if any(grupo.get('name') == 'administradores' for grupo in grupos_usuario):
+            # Obtener Lista de Entregas Recientes
+            data = {'congregacion_id': usuario['congregacion']}
+            territorios =  requests.post(BASE_URL_API+'territorios/congregacion/', json = data).json()
+
+            # Generar Keyboard con boton por cada asignacion
+            encabezado = "🗺️ *Reporte de Territorios* \n\n"
+            texto = encabezado
+            total = 0
+            for territorio in territorios:
+                total += territorio['cantidad_sordos']
+
+                emoji_asignado = ""
+                if territorio['asignado']:
+                    emoji_asignado = "🔒"
+                else:
+                    emoji_asignado = "🆓"
+
+                # Terirtorios Reservados
+                if territorio['numero'] == 0:
+                    emoji_asignado = "🚫"
+
+                territorio_texto = f"{emoji_asignado} *Territorio:* {territorio['numero']} - {territorio['nombre']}\n"
+                territorio_texto += f"👥 *Sordos:* {territorio['cantidad_sordos']}\n\n"
+                texto += territorio_texto
+
+            texto += f"👥 *Total de Sordos:* {total}\n\n"
+
+            await update.message.reply_text(
+                texto,
+                parse_mode='markdown'
+            )
+            return ConversationHandler.END
+        else:
+            await update.message.reply_text("No tienes permisos para ver este reporte. Por favor contacta a un administrador.")
+            return ConversationHandler.END
+
+    except Exception as e:
+        print(e)
+        await update.message.reply_text("No se reconoce este usuario. Por favor contacta a un administrador.")
+        return ConversationHandler.END
+
+async def menu_administrador(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    try:
+        # Determinar ID de Usuario en base al ChatID de Telegram
+        data = {'telegram_chatid': update.message.chat_id}
+        usuario =  requests.post(BASE_URL_API+'publicadores/buscar_telegram_chatid/', json = data).json()[0]
+        context.user_data['user_data'] = usuario
+        grupos_usuario = usuario['user']['groups']
+        
+        if any(grupo.get('name') == 'administradores' for grupo in grupos_usuario):
+
+            keyboard = [
+                ['/reporteAsignaciones \n 📋 Reporte de Asignaciones Pendientes'],
+                ['/reporteEntregas \n 📋 Reporte de Entregas Recientes'],
+                ['/reporteTerritorios \n 🗺️ Reporte de Territorios'],
+            ]
+            reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, input_field_placeholder="Escoge una opción...")
+            await update.message.reply_text("👨🏻‍💼 *Menú de Administrador* \n\n ¿Qué deseas hacer?", reply_markup=reply_markup, parse_mode='markdown')
+
+        else:
+            await update.message.reply_text("No tienes permisos para ver este menú. Por favor contacta a un administrador.")
+    except Exception as e:
+        notify_exception(e)
+        await update.message.reply_text("No se reconoce este usuario. Por favor contacta a un administrador.")
 
 # Manejar Callbacks de Botones Inline
 async def inline_button_asignaciones(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -514,6 +603,7 @@ async def inline_button_asignaciones(update: Update, context: ContextTypes.DEFAU
                 if response_raw.status_code == 200:                        
                     file = response.get('file_path')
                     with open(file, 'rb') as document_file:
+                        
                         await context.bot.send_document(chat_id=dato2, document=document_file, caption=f"¡Hola {asignacion['publicador_nombre']}! Se te ha asignado el territorio *{str(asignacion['territorio_numero']) + ' - ' + asignacion['territorio_nombre']}*. \n Por favor visita las direcciones, predica a cualquier persona que salga e intenta empezar estudios. Anota si no encuentras a nadie y regresa en diferentes horarios. Puedes avisarnos si cualquier detalle es incorrecto. \n ¡Muchas gracias por tu trabajo! 🎒🤟🏼", parse_mode='markdown')
                 
                 # Cleanup
@@ -601,7 +691,6 @@ async def start (update: Update, context: ContextTypes.DEFAULT_TYPE):
             else:
                 response = f"Error al Entregar Asignacion. Status Code: {response.status_code}."
             await update.message.reply_text(text=response)
-
             await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Gracias por entregar el territorio {str(asignacion['territorio_numero'])} - {asignacion['territorio_nombre']} !")
             await context.bot.send_message(chat_id=CHAT_ID_ADMIN, text=f"🥳 Entrega - {id_asignacion} --- {nombre_usuario} - {update.effective_chat.id}")
         except Exception as e:
@@ -688,6 +777,8 @@ def main() -> None:
 
     application.add_handler(CommandHandler("reporteAsignaciones",reporte_asignaciones))
     application.add_handler(CommandHandler("reporteEntregas",reporte_entregas))
+    application.add_handler(CommandHandler("reporteTerritorios",reporte_territorios))
+    application.add_handler(CommandHandler("admin", menu_administrador))
     application.add_handler(CallbackQueryHandler(inline_button_asignaciones))
 
     application.add_handler(CommandHandler("start", start))
