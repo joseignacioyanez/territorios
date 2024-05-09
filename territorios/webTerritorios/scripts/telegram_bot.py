@@ -17,6 +17,13 @@ from telegram.ext import ( # type: ignore
     filters,
     CallbackQueryHandler,
 )
+import sys
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(SCRIPT_DIR))
+
+from scripts.csv_GoogleMyMaps import generar_csv_sordos
+from scripts.kml_MapsMe import generar_kml_sordos
+from scripts.gpx_Osmand import generar_gpx_sordos
 
 # Helper Function
 def formatear_fecha(fecha):
@@ -466,6 +473,26 @@ async def reporte_territorios(update: Update, context: ContextTypes.DEFAULT_TYPE
         await update.message.reply_text("No se reconoce este usuario. Por favor contacta a un administrador.")
         return ConversationHandler.END
 
+async def exportar_sordos(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    csv = generar_csv_sordos()
+    with open(csv, 'rb') as document_file:                    
+        await context.bot.send_document(chat_id=update.effective_chat.id, document=document_file, caption=f"*CSV* - Google My Maps", parse_mode='markdown')
+        
+    
+    kml = generar_kml_sordos()
+    with open(kml, 'rb') as document_file:
+        await context.bot.send_document(chat_id=update.effective_chat.id, document=document_file, caption=f"*KML* - Maps.Me", parse_mode='markdown')
+
+    gpx = generar_gpx_sordos()
+    with open(gpx, 'rb') as document_file:
+        await context.bot.send_document(chat_id=update.effective_chat.id, document=document_file, caption=f"*GPX* - Maps.Me", parse_mode='markdown')
+
+    # Cleanup
+    os.remove(csv)
+    os.remove(kml)
+
+
+
 async def menu_administrador(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     try:
@@ -778,6 +805,7 @@ def main() -> None:
     application.add_handler(CommandHandler("reporteAsignaciones",reporte_asignaciones))
     application.add_handler(CommandHandler("reporteEntregas",reporte_entregas))
     application.add_handler(CommandHandler("reporteTerritorios",reporte_territorios))
+    application.add_handler(CommandHandler("exportarSordos", exportar_sordos))
     application.add_handler(CommandHandler("admin", menu_administrador))
     application.add_handler(CallbackQueryHandler(inline_button_asignaciones))
 
