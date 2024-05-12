@@ -34,8 +34,8 @@ def generar_gpx_sordos():
                     
     # Puntos
     data = {'congregacion_id': 1}
-    sordos =  requests.post('http://localhost:8000/api/sordos/para_kml_y_gpx/', json = data).json()
-
+    sordos =  requests.post('http://localhost:8000/api/sordos/para_kml_y_gpx/', json = data)
+    sordos = sordos.json()
     for sordo in sordos:
         wpt = ET.SubElement(root, "wpt")
         wpt.set("lat", str(sordo['gps_latitud']))
@@ -80,7 +80,7 @@ def generar_gpx_sordos():
         trkseg = ET.SubElement(trk, "trkseg")
 
         ya_primero = False
-        primero = ""
+        primero = {}
 
         for sordo in sordos:
             if sordo['territorio_numero'] == territorio['numero']:
@@ -95,8 +95,8 @@ def generar_gpx_sordos():
                     ya_primero = True
 
         last_trkpt = ET.SubElement(trkseg, "trkpt")
-        last_trkpt.set("lat", str(primero['latitud']))
-        last_trkpt.set("lon", str(primero['longitud']))
+        last_trkpt.set("lat", str(primero.get('latitud')))
+        last_trkpt.set("lon", str(primero.get('longitud')))
         ele = ET.SubElement(last_trkpt, "ele")
         ele.text = "0.0"
 
@@ -129,17 +129,33 @@ def generar_gpx_sordos():
     # Hola
 
     extensions = ET.SubElement(root, "extensions")
-
-    
-
-
+    osmand_show_arrows = ET.SubElement(extensions, "osmand:show_arrows")
+    osmand_show_arrows.text = "false"   
+    osmand_show_start_finish = ET.SubElement(extensions, "osmand:show_start_finish")
+    osmand_show_start_finish.text = "false"
+    osmand_vertical_exaggeration_scale = ET.SubElement(extensions, "osmand:vertical_exaggeration_scale")
+    osmand_vertical_exaggeration_scale.text = "1.000000"
+    osmand_line_3d_visualization_by_type = ET.SubElement(extensions, "osmand:line_3d_visualization_by_type")
+    osmand_line_3d_visualization_by_type.text = "none"
+    osmand_line_3d_visualization_wall_color_type = ET.SubElement(extensions, "osmand:line_3d_visualization_wall_color_type")
+    osmand_line_3d_visualization_wall_color_type.text = "upward_gradient"
+    osmand_line_3d_visualization_position_type = ET.SubElement(extensions, "osmand:line_3d_visualization_position_type")
+    osmand_line_3d_visualization_position_type.text = "top"
+    osmand_split_interval = ET.SubElement(extensions, "osmand:split_interval")
+    osmand_split_interval.text = "0"
+    osmand_split_type = ET.SubElement(extensions, "osmand:split_type")
+    osmand_split_type.text = "no_split"
+    osmand_color = ET.SubElement(extensions, "osmand:color")    
+    osmand_color.text = "#aa4e4eff"
+    osmand_width = ET.SubElement(extensions, "osmand:width")
+    osmand_width.text = "9"
     points_groups = ET.SubElement(extensions, "osmand:points_groups")
     group = ET.SubElement(points_groups, "osmand:group")
     group.set("background", "circle")
     group.set("name", NOMBRE_GPX)
     group.set("color", "#ffff0000")
     group.set("icon", "special_marker")
-
+    
     tree = ET.ElementTree(root)
     ET.indent(tree, space="\t", level=0)
     tree.write("territorios.gpx", xml_declaration=True,encoding='utf-8', method="xml")

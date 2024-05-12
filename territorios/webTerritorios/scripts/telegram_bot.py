@@ -490,6 +490,7 @@ async def exportar_sordos(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Cleanup
     os.remove(csv)
     os.remove(kml)
+    os.remove(gpx)
 
 
 
@@ -508,6 +509,7 @@ async def menu_administrador(update: Update, context: ContextTypes.DEFAULT_TYPE)
                 ['/reporteAsignaciones \n 📋 Reporte de Asignaciones Pendientes'],
                 ['/reporteEntregas \n 📋 Reporte de Entregas Recientes'],
                 ['/reporteTerritorios \n 🗺️ Reporte de Territorios'],
+                ['/exportarSordos \n 📍 Exportar a Apps de Mapas'],
             ]
             reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, input_field_placeholder="Escoge una opción...")
             await update.message.reply_text("👨🏻‍💼 *Menú de Administrador* \n\n ¿Qué deseas hacer?", reply_markup=reply_markup, parse_mode='markdown')
