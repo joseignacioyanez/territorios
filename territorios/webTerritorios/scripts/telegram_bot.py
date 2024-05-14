@@ -485,7 +485,7 @@ async def exportar_sordos(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     gpx = generar_gpx_sordos()
     with open(gpx, 'rb') as document_file:
-        await context.bot.send_document(chat_id=update.effective_chat.id, document=document_file, caption=f"*GPX* - Maps.Me", parse_mode='markdown')
+        await context.bot.send_document(chat_id=update.effective_chat.id, document=document_file, caption=f"*GPX* - Osmand", parse_mode='markdown')
 
     # Cleanup
     os.remove(csv)
