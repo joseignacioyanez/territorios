@@ -36,7 +36,7 @@ def notify_exception(e: Exception) -> None:
     # Notify the admin about the exception
     error_message = f"☢️ An exception occurred in the bot:\n\n{str(e)}\n\n{traceback.format_exc()}"
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage?chat_id={CHAT_ID_ADMIN}&text={error_message}"
-    requests.get(url)
+    requests.get(url, timeout=60)
 
 
 
@@ -63,7 +63,7 @@ async def asignar(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     # Determinar ID de Usuario en base al ChatID de Telegram
     try:
         data = {'telegram_chatid': update.message.chat_id}
-        response =  requests.post( BASE_URL_API+'publicadores/buscar_telegram_chatid/', json = data).json()
+        response =  requests.post( BASE_URL_API+'publicadores/buscar_telegram_chatid/', json = data, timeout=60).json()
         context.user_data['user_asignador'] = response[0] # Guardar datos del Usuario en Contexto
     except Exception as e:
         notify_exception(e)
@@ -76,7 +76,7 @@ async def asignar(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         # Obtener Lista de Publicadores Activos de la misma Congregación
         try:
             data = {'congregacion_id': context.user_data['user_asignador']['congregacion']}
-            publicadores =  requests.post(BASE_URL_API+'publicadores/activos_de_congregacion/', json = data).json()
+            publicadores =  requests.post(BASE_URL_API+'publicadores/activos_de_congregacion/', json = data, timeout=60).json()
         except Exception as e:
             notify_exception(e)
             await update.message.reply_text("Error al obtener la lista de Publicadores. Por favor contacta a un administrador.")
@@ -117,7 +117,7 @@ async def publicador(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     # Verificar si el usuario tiene Asignaciones Pendientes de entregar
     try:
         data = {'congregacion_id': context.user_data['user_asignador']['congregacion']}
-        asignaciones_pendientes =  requests.post(BASE_URL_API+'asignaciones/pendientes/', json = data).json()
+        asignaciones_pendientes =  requests.post(BASE_URL_API+'asignaciones/pendientes/', json = data, timeout=60).json()
     except Exception as e:
         notify_exception(e)
         await update.message.reply_text("Error al obtener la lista de Asignaciones. Por favor contacta a un administrador.")
@@ -160,7 +160,7 @@ async def verificacion(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
         # Obtener Lista de Territorios Disponibles
         try:
             data = {'congregacion_id': context.user_data['user_asignador']['congregacion']}
-            territorios_disponibles =  requests.post(BASE_URL_API+'territorios/disponibles/', json = data).json()
+            territorios_disponibles =  requests.post(BASE_URL_API+'territorios/disponibles/', json = data, timeout=60).json()
 
             reply_keyboard = []
             if not territorios_disponibles:
@@ -240,7 +240,7 @@ async def metodo_envio(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
             'metodo_entrega': context.user_data['metodo_entrega'],
             'solo_pdf': False
         }
-    response_raw =  requests.post('http://localhost:8000/webTerritorios/asignar_territorio/', json = data)
+    response_raw =  requests.post('http://localhost:8000/webTerritorios/asignar_territorio/', json = data, timeout=60)
     response = response_raw.json()
 
     if response_raw.status_code == 200:
@@ -304,14 +304,14 @@ async def reporte_asignaciones(update: Update, context: ContextTypes.DEFAULT_TYP
     try:
         # Determinar ID de Usuario en base al ChatID de Telegram
         data = {'telegram_chatid': update.message.chat_id}
-        usuario =  requests.post(BASE_URL_API+'publicadores/buscar_telegram_chatid/', json = data).json()[0]
+        usuario =  requests.post(BASE_URL_API+'publicadores/buscar_telegram_chatid/', json = data, timeout=60).json()[0]
         context.user_data['user_data'] = usuario
         grupos_usuario = usuario['user']['groups']
         
         if any(grupo.get('name') == 'administradores' for grupo in grupos_usuario):
             # Obtener Lista de Asignaciones Pendientes
             data = {'congregacion_id': usuario['congregacion']}
-            asignaciones_pendientes =  requests.post(BASE_URL_API+'asignaciones/pendientes/', json = data).json()
+            asignaciones_pendientes =  requests.post(BASE_URL_API+'asignaciones/pendientes/', json = data, timeout=60).json()
 
             # Generar Keyboard con boton por cada asignacion
             encabezado = "📋 *Asignaciones Pendientes* \n\n"
@@ -369,14 +369,14 @@ async def reporte_entregas(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         # Determinar ID de Usuario en base al ChatID de Telegram
         data = {'telegram_chatid': update.message.chat_id}
-        usuario =  requests.post(BASE_URL_API+'publicadores/buscar_telegram_chatid/', json = data).json()[0]
+        usuario =  requests.post(BASE_URL_API+'publicadores/buscar_telegram_chatid/', json = data, timeout=60).json()[0]
         context.user_data['user_data'] = usuario
         grupos_usuario = usuario['user']['groups']
         
         if any(grupo.get('name') == 'administradores' for grupo in grupos_usuario):
             # Obtener Lista de Entregas Recientes
             data = {'congregacion_id': usuario['congregacion']}
-            asignaciones_entregadas =  requests.post(BASE_URL_API+'asignaciones/entregadas/', json = data).json()
+            asignaciones_entregadas =  requests.post(BASE_URL_API+'asignaciones/entregadas/', json = data, timeout=60).json()
 
             # Generar Keyboard con boton por cada asignacion
             encabezado = "📋 *Asignaciones Entregadas Recientemente* \n\n"
@@ -427,14 +427,14 @@ async def reporte_territorios(update: Update, context: ContextTypes.DEFAULT_TYPE
     try:
         # Determinar ID de Usuario en base al ChatID de Telegram
         data = {'telegram_chatid': update.message.chat_id}
-        usuario =  requests.post(BASE_URL_API+'publicadores/buscar_telegram_chatid/', json = data).json()[0]
+        usuario =  requests.post(BASE_URL_API+'publicadores/buscar_telegram_chatid/', json = data, timeout=60).json()[0]
         context.user_data['user_data'] = usuario
         grupos_usuario = usuario['user']['groups']
         
         if any(grupo.get('name') == 'administradores' for grupo in grupos_usuario):
             # Obtener Lista de Entregas Recientes
             data = {'congregacion_id': usuario['congregacion']}
-            territorios =  requests.post(BASE_URL_API+'territorios/congregacion/', json = data).json()
+            territorios =  requests.post(BASE_URL_API+'territorios/congregacion/', json = data, timeout=60).json()
 
             # Generar Keyboard con boton por cada asignacion
             encabezado = "🗺️ *Reporte de Territorios* \n\n"
@@ -499,7 +499,7 @@ async def menu_administrador(update: Update, context: ContextTypes.DEFAULT_TYPE)
     try:
         # Determinar ID de Usuario en base al ChatID de Telegram
         data = {'telegram_chatid': update.message.chat_id}
-        usuario =  requests.post(BASE_URL_API+'publicadores/buscar_telegram_chatid/', json = data).json()[0]
+        usuario =  requests.post(BASE_URL_API+'publicadores/buscar_telegram_chatid/', json = data, timeout=60).json()[0]
         context.user_data['user_data'] = usuario
         grupos_usuario = usuario['user']['groups']
         
@@ -541,7 +541,7 @@ async def inline_button_asignaciones(update: Update, context: ContextTypes.DEFAU
             # DETALLE DE ASIGNACION no entregada con botones para administrar
             if flag_proceso == "reporte_asignacion":
                 # Obtener detalles de asignacion
-                asignacion_detalles =  requests.get(BASE_URL_API + 'asignaciones/' + dato).json()
+                asignacion_detalles =  requests.get(BASE_URL_API + 'asignaciones/' + dato, timeout=60).json()
 
                 # Devolver botones para Borrar y Entregar Asignacion
                 timestamp_now = str(int(time.time()))
@@ -565,7 +565,7 @@ async def inline_button_asignaciones(update: Update, context: ContextTypes.DEFAU
             # DETALLE DE ASIGNACION entregada
             elif flag_proceso == "detalle_asignacion":
                 # Obtener detalles de asignacion
-                asignacion_detalles =  requests.get(BASE_URL_API + 'asignaciones/' + dato).json()
+                asignacion_detalles =  requests.get(BASE_URL_API + 'asignaciones/' + dato, timeout=60).json()
                 # Descripcion de la Asignacion
                 descripcion = f'''
     📋 *Asignacion* \n
@@ -579,7 +579,7 @@ async def inline_button_asignaciones(update: Update, context: ContextTypes.DEFAU
 
             # BORRAR ASIGNACION
             elif flag_proceso == "borrar_asignacion":
-                response = requests.delete(BASE_URL_API + f'asignaciones/{dato}/')
+                response = requests.delete(BASE_URL_API + f'asignaciones/{dato}/', timeout=60)
                 if response.status_code == 204:
                     response = "Asignacion Borrada Exitosamente. 🚮"
                 else:
@@ -589,9 +589,9 @@ async def inline_button_asignaciones(update: Update, context: ContextTypes.DEFAU
             
             # ENTREGAR ASIGNACION
             elif flag_proceso == "entregar_asignacion":
-                asignacion = requests.get(BASE_URL_API + f'asignaciones/{dato}').json()
+                asignacion = requests.get(BASE_URL_API + f'asignaciones/{dato}', timeout=60).json()
                 asignacion['fecha_fin'] = datetime.datetime.now().isoformat()
-                response = requests.put(BASE_URL_API + f'asignaciones/{dato}/', json=asignacion)
+                response = requests.put(BASE_URL_API + f'asignaciones/{dato}/', json=asignacion, timeout=60)
                 if response.status_code == 200:
                     response = "Asignacion Entregada Exitosamente. 🥳"
                 else:
@@ -601,8 +601,8 @@ async def inline_button_asignaciones(update: Update, context: ContextTypes.DEFAU
             # REGENERAR PDF DE ASIGNACION
             elif flag_proceso == "regenerar_pdf":
                 # DATO = ID ASIGNACION
-                asignacion = requests.get(BASE_URL_API + f'asignaciones/{dato}').json()
-                publicador = requests.get(BASE_URL_API + f'publicadores/{asignacion["publicador"]}').json()
+                asignacion = requests.get(BASE_URL_API + f'asignaciones/{dato}', timeout=60).json()
+                publicador = requests.get(BASE_URL_API + f'publicadores/{asignacion["publicador"]}', timeout=60).json()
                 telegram_chatid = publicador['telegram_chatid']
                 dato2_publicador = telegram_chatid
                 
@@ -620,14 +620,14 @@ async def inline_button_asignaciones(update: Update, context: ContextTypes.DEFAU
 
             # 1. REGENERAR PDF DIGITAL AL ASIGNADO
             elif flag_proceso == "regenerar_pdf_digital_al_asignado":
-                asignacion = requests.get(BASE_URL_API + f'asignaciones/{dato}').json()
+                asignacion = requests.get(BASE_URL_API + f'asignaciones/{dato}', timeout=60).json()
                 data = {
                 'publicador_id': asignacion['publicador'],
                 'territorio_id': asignacion['territorio'],
                 'metodo_entrega': 'digital_publicador',
                 'solo_pdf': True
                 }
-                response_raw =  requests.post('http://localhost:8000/webTerritorios/asignar_territorio/', json = data)
+                response_raw =  requests.post('http://localhost:8000/webTerritorios/asignar_territorio/', json = data, timeout=60)
                 response = response_raw.json()
                 if response_raw.status_code == 200:                        
                     file = response.get('file_path')
@@ -641,14 +641,14 @@ async def inline_button_asignaciones(update: Update, context: ContextTypes.DEFAU
 
             # 2. REGENERAR PDF DIGITAL AL SOLICITANTE
             elif flag_proceso == "regenerar_pdf_digital_al_solicitante":
-                asignacion = requests.get(BASE_URL_API + f'asignaciones/{dato}').json()
+                asignacion = requests.get(BASE_URL_API + f'asignaciones/{dato}', timeout=60).json()
                 data = {
                 'publicador_id': asignacion['publicador'],
                 'territorio_id': asignacion['territorio'],
                 'metodo_entrega': 'digital_asignador',
                 'solo_pdf': True
                 }
-                response_raw =  requests.post('http://localhost:8000/webTerritorios/asignar_territorio/', json = data)
+                response_raw =  requests.post('http://localhost:8000/webTerritorios/asignar_territorio/', json = data, timeout=60)
                 response = response_raw.json()
                 if response_raw.status_code == 200:                        
                     file = response.get('file_path')
@@ -661,14 +661,14 @@ async def inline_button_asignaciones(update: Update, context: ContextTypes.DEFAU
 
             # 3. REGENERAR PDF IMPRESO AL SOLICITANTE
             elif flag_proceso == "regenerar_pdf_impreso_al_solicitante":
-                asignacion = requests.get(BASE_URL_API + f'asignaciones/{dato}').json()
+                asignacion = requests.get(BASE_URL_API + f'asignaciones/{dato}', timeout=60).json()
                 data = {
                 'publicador_id': asignacion['publicador'],
                 'territorio_id': asignacion['territorio'],
                 'metodo_entrega': 'impreso_asignador',
                 'solo_pdf': True
                 }
-                response_raw =  requests.post('http://localhost:8000/webTerritorios/asignar_territorio/', json = data)
+                response_raw =  requests.post('http://localhost:8000/webTerritorios/asignar_territorio/', json = data, timeout=60)
                 response = response_raw.json()
                 if response_raw.status_code == 200:                        
                     file = response.get('file_path')
@@ -690,7 +690,7 @@ async def start (update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Usar API para obtener nombre del ChatID, en su defecto usar su username
     try:
         data = {'telegram_chatid': update.effective_chat.id}
-        response =  requests.post(BASE_URL_API+'publicadores/buscar_telegram_chatid/', json = data).json()
+        response =  requests.post(BASE_URL_API+'publicadores/buscar_telegram_chatid/', json = data, timeout=60).json()
         nombre_usuario = response[0]['nombre']
     except:
         nombre_usuario = update.effective_user.username
@@ -712,9 +712,9 @@ async def start (update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         # Llamar a Funcion de Entrega
         try:
-            asignacion = requests.get(BASE_URL_API + f'asignaciones/{id_asignacion}').json()
+            asignacion = requests.get(BASE_URL_API + f'asignaciones/{id_asignacion}', timeout=60).json()
             asignacion['fecha_fin'] = datetime.datetime.now().isoformat()
-            response = requests.put(BASE_URL_API + f'asignaciones/{id_asignacion}/', json=asignacion)
+            response = requests.put(BASE_URL_API + f'asignaciones/{id_asignacion}/', json=asignacion, timeout=60)
             if response.status_code == 200:
                 response = "Asignacion Entregada Exitosamente. 🥳"
             else:
@@ -732,7 +732,7 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Usar API para obtener nombre del ChatID, en su defecto usar su username
     try:
         data = {'telegram_chatid': update.effective_chat.id}
-        response =  requests.post(BASE_URL_API+'publicadores/buscar_telegram_chatid/', json = data).json()
+        response =  requests.post(BASE_URL_API+'publicadores/buscar_telegram_chatid/', json = data, timeout=60).json()
         nombre_usuario = response[0]['nombre']
     except:
         nombre_usuario = update.effective_user.username
@@ -821,7 +821,7 @@ def main() -> None:
         print(f"An exception occurred in the bot:\n\n{str(e)}\n\n{traceback.format_exc()}")
         error_message = f"An exception occurred in the bot:\n\n{str(e)}\n\n{traceback.format_exc()}"
         url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage?chat_id={CHAT_ID_ADMIN}&text={error_message}"
-        requests.get(url)
+        requests.get(url, timeout=60)
 
 if __name__ == "__main__":
     main()
