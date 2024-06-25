@@ -9,7 +9,6 @@ from django.shortcuts import redirect, render
 from django.urls import reverse, reverse_lazy
 from django.utils.safestring import SafeString
 from django.views import View
-import pandas as pd
 import requests
 
 from .models import Asignacion, Sordo, Publicador, Territorio, Congregacion, EstadoSordo
@@ -30,6 +29,7 @@ from .scripts.territorioPDFdigital import llenarTerritorioDigital
 from .scripts.territorioPDFimpreso import llenarTerritorioImpreso
 
 import datetime
+from security import safe_requests
 
 # No vista, Funcion de ayuda
 def preparar_y_generar_territorio(publicador_id, territorio_id, metodo_entrega, solo_pdf):
@@ -118,7 +118,7 @@ def enviar_territorio_telegram(chat_id, file_path, territorio):
 
         message = f"¡Hola! Se te ha asignado el territorio *{territorio}*. \n Por favor visita las direcciones, predica a cualquier persona que salga e intenta empezar estudios. Anota si no encuentras a nadie y regresa en diferentes horarios. Puedes avisarnos si cualquier detalle es incorrecto. \n ¡Muchas gracias por tu trabajo! 🎒🤟🏼"
         url = f"https://api.telegram.org/bot{os.environ['TELEGRAM_BOT_TOKEN']}/sendMessage?chat_id={chat_id}&text={message}"
-        resp = requests.get(url).json()
+        resp = safe_requests.get(url).json()
 
         # Cleanup
         os.remove(file_path)
@@ -131,7 +131,7 @@ def enviar_territorio_telegram(chat_id, file_path, territorio):
 def enviar_mensaje_telegram(chat_id, message):
     try:
         url = f"https://api.telegram.org/bot{os.environ['TELEGRAM_BOT_TOKEN']}/sendMessage?chat_id={chat_id}&text={message}"
-        resp = requests.get(url).json()
+        resp = safe_requests.get(url).json()
         return True
     
     except Exception as e:
