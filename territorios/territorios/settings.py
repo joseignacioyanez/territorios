@@ -27,7 +27,7 @@ GOOGLE_MAPS_API_KEY = config('GOOGLE_MAPS_API_KEY')
 TELEGRAM_ADMIN_CHAT_ID = config('TELEGRAM_ADMIN_CHAT_ID')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
