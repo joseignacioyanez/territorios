@@ -25,6 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-l^0xo*5b_*wfui)t46u+tgsdikbs1^$pv_3-y3idrvqj)^p*!t'
 GOOGLE_MAPS_API_KEY = config('GOOGLE_MAPS_API_KEY')
 TELEGRAM_ADMIN_CHAT_ID = config('TELEGRAM_ADMIN_CHAT_ID')
+DB_PASSWORD = config('DB_PASSWORD')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -85,8 +86,12 @@ WSGI_APPLICATION = 'territorios.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'territorios',
+        'USER': 'postgres',
+        'PASSWORD': DB_PASSWORD,
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
