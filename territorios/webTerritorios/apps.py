@@ -10,5 +10,5 @@ class WebterritoriosConfig(AppConfig):
     def ready(self):
         # Correr Bot de Telegram mientras corra App Django
         with open('logTelegram', "w") as outfile:
-            subprocess.Popen(["python", "webTerritorios/scripts/telegram_bot.py"], stdout=outfile , stderr=subprocess.DEVNULL)
+            #subprocess.Popen(["python", "webTerritorios/scripts/telegram_bot.py"], stdout=outfile , stderr=subprocess.DEVNULL)
             super().ready()
