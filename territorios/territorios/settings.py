@@ -90,7 +90,8 @@ DATABASES = {
         'NAME': 'territorios',
         'USER': 'postgres',
         'PASSWORD': DB_PASSWORD,
-        'HOST': 'territorios-postgres',
+#        'HOST': 'territorios-postgres',
+        'HOST': '34.75.132.211',# BD produccion
         'PORT': '5432',
     }
 }
