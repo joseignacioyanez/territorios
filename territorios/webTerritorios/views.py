@@ -60,23 +60,23 @@ def preparar_y_generar_territorio(publicador_id, territorio_id, metodo_entrega, 
     if sordos:
         # Assign values if sordos list has items
         if len(sordos) > 0:
-            texto1 = sordos[0].nombre + " - " + str(calcular_edad(sordos[0].anio_nacimiento)) + ' años : ' + sordos[0].direccion + '\n' + sordos[0].detalles_direccion
+            texto1 = sordos[0].direccion + '\n' + sordos[0].detalles_direccion
             gps1 = str(sordos[0].gps_latitud) + ',' + str(sordos[0].gps_longitud)
             id_sordo1 = sordos[0].codigo
         if len(sordos) > 1:
-            texto2 = sordos[1].nombre + " - " + str(calcular_edad(sordos[1].anio_nacimiento)) + ' años : '  + sordos[1].direccion + '\n' + sordos[1].detalles_direccion
+            texto2 = sordos[1].direccion + '\n' + sordos[1].detalles_direccion
             gps2 = str(sordos[1].gps_latitud) + ',' + str(sordos[1].gps_longitud)
             id_sordo2 = sordos[1].codigo
         if len(sordos) > 2:
-            texto3 = sordos[2].nombre + " - " + str(calcular_edad(sordos[2].anio_nacimiento)) + ' años : ' + sordos[2].direccion + '\n' + sordos[2].detalles_direccion
+            texto3 = sordos[2].direccion + '\n' + sordos[2].detalles_direccion
             gps3 = str(sordos[2].gps_latitud) + ',' + str(sordos[2].gps_longitud)
             id_sordo3 = sordos[2].codigo
         if len(sordos) > 3:
-            texto4 = sordos[3].nombre + " - " + str(calcular_edad(sordos[3].anio_nacimiento)) + ' años : ' + sordos[3].direccion + '\n' + sordos[3].detalles_direccion
+            texto4 = sordos[3].direccion + '\n' + sordos[3].detalles_direccion
             gps4 = str(sordos[3].gps_latitud) + ',' + str(sordos[3].gps_longitud)
             id_sordo4 = sordos[3].codigo
         if len(sordos) > 4:
-            texto5 = sordos[4].nombre + " - " + str(calcular_edad(sordos[4].anio_nacimiento)) + ' años : ' + sordos[4].direccion + '\n' + sordos[4].detalles_direccion
+            texto5 = sordos[4].direccion + '\n' + sordos[4].detalles_direccion
             gps5 = str(sordos[4].gps_latitud) + ',' + str(sordos[4].gps_longitud)
             id_sordo5 = sordos[4].codigo
 
