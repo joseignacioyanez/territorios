@@ -385,6 +385,19 @@ class AsignacionViewSet(viewsets.ModelViewSet):
             ).order_by('-fecha_fin')[:15] # Ultimas 15 entregas
             serializer = AsignacionSerializer(queryset, many=True)
             return Response(serializer.data)
+        
+    @action(detail=False, methods=['post'])
+    def reporte_congregacion(self, request):
+        data = request.data
+        id_congregacion = data.get('congregacion_id')
+        if id_congregacion is None:
+            return Response({'error': 'No se proporcionó el ID de la congregación en la solicitud'}, status=400)
+        else:
+            queryset = Asignacion.objects.filter(
+                Q(territorio__congregacion=id_congregacion) 
+            )
+            serializer = AsignacionSerializer(queryset, many=True)
+            return Response(serializer.data)
 
 @csrf_exempt
 def asignar_territorio(request):
