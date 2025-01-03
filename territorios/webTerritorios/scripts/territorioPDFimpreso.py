@@ -7,9 +7,9 @@ from textwrap import wrap
 from fitz import Rect, open as open_fitz
 import os
 from dotenv import load_dotenv
-import requests
 from datetime import datetime
 import qrcode
+from security import safe_requests
 
 posiciones_texto_impreso = [[47,317],[47,251],[47,185],[47,119],[47,53]]
 
@@ -46,7 +46,7 @@ def generar_mapa(gps1, gps2, gps3, gps4, gps5):
     # Estilos y Token
     static_map_url += f"&maptype=roadmap&style=feature:landscape%7Cvisibility:off&style=feature:poi%7Cvisibility:off&style=feature:poi.government%7Cvisibility:on&style=feature:poi.medical%7Cvisibility:on&style=feature:poi.park%7Cvisibility:on&style=feature:poi.place_of_worship%7Cvisibility:on&style=feature:poi.school%7Cvisibility:on&style=feature:poi.sports_complex%7Cvisibility:on&style=feature:road.arterial%7Celement:geometry.stroke%7Ccolor:0xff0000%7Cweight:1&style=feature:road.local%7Celement:geometry.stroke%7Ccolor:0x000000%7Cvisibility:on%7Cweight:0.5&key={os.environ['GOOGLE_MAPS_API_KEY']}"
     
-    imgData = requests.get(static_map_url).content
+    imgData = safe_requests.get(static_map_url).content
     with open("mapa.jpg", 'wb') as handlerImage:
         handlerImage.write(imgData)
 
