@@ -338,6 +338,23 @@ class PublicadorViewSet(viewsets.ModelViewSet):
             queryset = Publicador.objects.filter(congregacion=id_congregacion, activo=True)
             serializer = PublicadorSerializer(queryset, many=True)
             return Response(serializer.data)
+        
+    # Obtener el publicador con usergroup 'superadmin' de la congregacion del publcador que solicita
+    @action(detail=False, methods=['post'])
+    def superadmin_congregacion(self, request):
+        data = request.data
+        id_publicador = data.get('publicador_id')
+        publicador = Publicador.objects.get(pk=id_publicador)
+        queryset = Publicador.objects.filter(user__groups__name='superadministradores', congregacion=publicador.congregacion)
+        serializer = PublicadorSerializer(queryset, many=True)
+        return Response(serializer.data)
+    
+    # Obtener todos los usuarios con el grupo superadmin
+    @action(detail=False, methods=['get'])
+    def superadmin(self, request):
+        queryset = Publicador.objects.filter(user__groups__name='superadministradores')
+        serializer = PublicadorSerializer(queryset, many=True)
+        return Response(serializer.data)
 
 class SordoViewSet(viewsets.ModelViewSet):
     queryset = Sordo.objects.all()

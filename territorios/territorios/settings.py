@@ -91,8 +91,8 @@ DATABASES = {
         'NAME': 'territorios',
         'USER': 'postgres',
         'PASSWORD': DB_PASSWORD,
-#        'HOST': 'localhost', # BD desarrollo local
-        'HOST': '34.75.132.211',# BD produccion
+        'HOST': 'localhost', # BD desarrollo local
+#        'HOST': '34.75.132.211',# BD produccion
         'PORT': '5432',
     }
 }
@@ -140,3 +140,13 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://django.joseignacio.com.es',  # If using a custom domain with Cloudflare
+    'http://localhost:8000',
+]
+
+#SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+#CSRF_COOKIE_DOMAIN = '.joseignacio.com.es'

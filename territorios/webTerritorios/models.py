@@ -97,8 +97,8 @@ class Asignacion(models.Model):
     id = models.AutoField(primary_key=True)
     publicador = models.ForeignKey(Publicador, verbose_name="Publicador", blank=True, null=True, on_delete=models.SET_NULL, related_name="asignaciones_de_este_publicador")
     territorio = models.ForeignKey(Territorio, verbose_name="Territorio", blank=True, null=True, on_delete=models.SET_NULL, related_name="asignaciones_de_este_territorio")
-    fecha_asignacion = models.DateTimeField(auto_now_add=True) #Se crea la fecha de creacion automaticamente
-    fecha_fin = models.DateTimeField(blank=True, null=True) 
+    fecha_asignacion = models.DateField(auto_now_add=True) #Se crea la fecha de creacion automaticamente
+    fecha_fin = models.DateField(blank=True, null=True) 
 
     def __str__(self):
         return f"{self.id} - {self.territorio.nombre} - {self.publicador.nombre} - {self.fecha_asignacion} - {self.fecha_fin}"
