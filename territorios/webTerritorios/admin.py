@@ -3,11 +3,14 @@ from django import forms
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 from import_export.admin import ImportExportModelAdmin  # type: ignore
+from leaflet_point.admin import LeafletPointAdmin # type: ignore
 
 from.models import *
 
+class CustomLeafletPointAdmin(LeafletPointAdmin):
+    list_display = ('{title/name/...}', 'gps_latitud', 'gps_longitud')
 
-class SordoAdmin(ImportExportModelAdmin):
+class SordoAdmin(ImportExportModelAdmin, LeafletPointAdmin):
     exclude = ('codigo', 'local_id')
     ordering = ('codigo',)
     list_filter = ('congregacion', 'estado_sordo', 'territorio', 'publicador_estudio')
@@ -46,7 +49,12 @@ admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
 
 # Register your models here.
-admin.site.register(Sordo, SordoAdmin)
+admin.site.register(Sordo, SordoAdmin,config_overrides = {
+        'lat_input_selector': 'gps_latitud', # if you want to name your field differently
+        'lng_input_selector': 'gps_longitud', # defaults to longitude and latitude
+        'map_height': 500, # defaults to 400
+        'geocoder': True # defaults to false
+    }  )
 admin.site.register(Congregacion)
 admin.site.register(EstadoSordo)
 admin.site.register(Territorio, TerritorioAdmin)

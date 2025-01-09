@@ -37,6 +37,7 @@ ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
     'webTerritorios',
+    'leaflet_point',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -150,3 +151,15 @@ CSRF_TRUSTED_ORIGINS = [
 #SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 #CSRF_COOKIE_DOMAIN = '.joseignacio.com.es'
+
+# Leaflet
+LEAFLET_POINT_CONFIG = {
+    # these are defaults...
+    'map_height': 500,
+    'tile_layer': 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    'attibution': '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    'initial_lat': 0,
+    'initial_lng': 0,
+    'initial_zoom': 15,
+    'geocoder': True
+}

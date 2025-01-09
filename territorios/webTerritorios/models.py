@@ -61,13 +61,13 @@ class Sordo(models.Model):
     anio_nacimiento = models.IntegerField(blank=True, null=True)
     telefono = models.CharField(max_length=10, blank=True)
     direccion = models.CharField(max_length=500, blank=True)
-    gps_latitud = models.DecimalField(max_digits=11, decimal_places=6, blank=True, null=True)
-    gps_longitud = models.DecimalField(max_digits=11, decimal_places=6, blank=True, null=True)
     detalles_sordo = models.CharField(max_length=400, blank=True)
     detalles_familia = models.CharField(max_length=200, blank=True)
     detalles_direccion = models.CharField(max_length=400, blank=True)
     territorio = models.ForeignKey(Territorio, verbose_name="Territorio", blank=True, null=True, on_delete=models.SET_NULL, related_name="sordos")
     estado_sordo = models.ForeignKey(EstadoSordo, verbose_name="Estado del Sordo", blank=True, null=True, on_delete=models.SET_NULL, related_name="sordos_de_este_estado")
+    gps_latitud = models.DecimalField(max_digits=11, decimal_places=6, blank=True, null=True)
+    gps_longitud = models.DecimalField(max_digits=11, decimal_places=6, blank=True, null=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True) #Se crea la fecha de creacion automaticamente
     fecha_ultimo_cambio = models.DateTimeField(auto_now=True) #Se actualiza la fecha de modificacion automaticamente
 
@@ -88,7 +88,9 @@ class Sordo(models.Model):
         initials = "".join(word[0].upper() for word in self.congregacion.nombre.split())
         code = f"{initials}-{self.local_id:03d}"
         self.codigo = code
+
         super().save(*args, **kwargs)
+
     
     def get_absolute_url(self):
         return reverse("sordo", args=[str(self.id)])
