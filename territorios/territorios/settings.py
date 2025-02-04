@@ -163,3 +163,4 @@ LEAFLET_POINT_CONFIG = {
     'initial_zoom': 15,
     'geocoder': True
 }
+SESSION_COOKIE_SECURE = True
