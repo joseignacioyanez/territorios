@@ -26,22 +26,22 @@ def fecha_hoy_formato_espanol():
 def generar_mapa(gps1, gps2, gps3, gps4, gps5):
     load_dotenv()
 
-    # Iconos Marcadores https://imgur.com/a/pNtp9ah 
+    # Iconos Marcadores https://imgur.com/a/TsOuZ5N
     # MD con 90 pixeles de alto
     # static_map_url = f'''https://maps.googleapis.com/maps/api/staticmap?size=640x390&scale=2&markers=icon:https://i.imgur.com/ZOWDO0O.png%7Cscale:2%7C{gps1.replace("(","").replace(")","")}&markers=icon:https://i.imgur.com/NA2dEjH.png%7Cscale:2%7C{gps2.replace("(","").replace(")","")}&markers=icon:https://i.imgur.com/2G5s3mu.png%7Cscale:2%7C{gps3.replace("(","").replace(")","")}&markers=icon:https://i.imgur.com/iosHIwU.png%7Cscale:2%7C{gps4.replace("(","").replace(")","")}&markers=icon:https://i.imgur.com/AjX1HYJ.png%7Cscale:2%7C{gps5.replace("(","").replace(")","")}&maptype=roadmap&style=feature:landscape%7Cvisibility:off&style=feature:poi%7Cvisibility:off&style=feature:poi.government%7Cvisibility:on&style=feature:poi.medical%7Cvisibility:on&style=feature:poi.park%7Cvisibility:on&style=feature:poi.place_of_worship%7Cvisibility:on&style=feature:poi.school%7Cvisibility:on&style=feature:poi.sports_complex%7Cvisibility:on&style=feature:road.arterial%7Celement:geometry.stroke%7Ccolor:0xff0000%7Cweight:1&style=feature:road.local%7Celement:geometry.stroke%7Ccolor:0x000000%7Cvisibility:on%7Cweight:0.5&key={os.environ['GOOGLE_MAPS_API_KEY']}'''
     # HD con 120 pixeles de alto
     static_map_url = "https://maps.googleapis.com/maps/api/staticmap?size=640x390&scale=2"
 
     if gps1:
-        static_map_url += f"&markers=icon:https://i.imgur.com/1V4605W.png%7Cscale:2%7C{gps1}"
+        static_map_url += f"&markers=icon:https://i.imgur.com/TZpeTeZ.png%7Cscale:2%7C{gps1}"
     if gps2:
-        static_map_url += f"&markers=icon:https://i.imgur.com/T9QOGJV.png%7Cscale:2%7C{gps2}"
+        static_map_url += f"&markers=icon:https://i.imgur.com/u71rMfo.png%7Cscale:2%7C{gps2}"
     if gps3:
-        static_map_url += f"&markers=icon:https://i.imgur.com/XRk5ysU.png%7Cscale:2%7C{gps3}"
+        static_map_url += f"&markers=icon:https://i.imgur.com/oBqEgG7.png%7Cscale:2%7C{gps3}"
     if gps4:
-        static_map_url += f"&markers=icon:https://i.imgur.com/3RPpnd4.png%7Cscale:2%7C{gps4}"
+        static_map_url += f"&markers=icon:https://i.imgur.com/teU4P50.png%7Cscale:2%7C{gps4}"
     if gps5:
-        static_map_url += f"&markers=icon:https://i.imgur.com/dp8riZt.png%7Cscale:2%7C{gps5}"
+        static_map_url += f"&markers=icon:https://i.imgur.com/yQ9U9CF.png%7Cscale:2%7C{gps5}"
     # Estilos y Token
     static_map_url += f"&maptype=roadmap&style=feature:landscape%7Cvisibility:off&style=feature:poi%7Cvisibility:off&style=feature:poi.government%7Cvisibility:on&style=feature:poi.medical%7Cvisibility:on&style=feature:poi.park%7Cvisibility:on&style=feature:poi.place_of_worship%7Cvisibility:on&style=feature:poi.school%7Cvisibility:on&style=feature:poi.sports_complex%7Cvisibility:on&style=feature:road.arterial%7Celement:geometry.stroke%7Ccolor:0xff0000%7Cweight:1&style=feature:road.local%7Celement:geometry.stroke%7Ccolor:0x000000%7Cvisibility:on%7Cweight:0.5&key={os.environ['GOOGLE_MAPS_API_KEY']}"
     imgData = requests.get(static_map_url).content
