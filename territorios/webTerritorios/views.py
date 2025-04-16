@@ -58,31 +58,22 @@ def preparar_y_generar_territorio(publicador_id, territorio_id, metodo_entrega, 
     texto1 = texto2 = texto3 = texto4 = texto5 = gps1 = gps2 = gps3 = gps4 = gps5 = id_sordo1 = id_sordo2 = id_sordo3 = id_sordo4 = id_sordo5 = ''
 
     # Check if sordos list has items
+    datos = []
     if sordos:
         # Asignar valores en el formato que se usa en la generacion del territori
         # Texto: Direccion y Detalles de Direccion (No nombre ni edad)
         # GPS: "Latitud,Longitud"
         # ID: Codigo del Sordo
-        if len(sordos) > 0:
-            texto1 = sordos[0].direccion + '\n' + sordos[0].detalles_direccion
-            gps1 = str(sordos[0].gps_latitud) + ',' + str(sordos[0].gps_longitud)
-            id_sordo1 = sordos[0].codigo
-        if len(sordos) > 1:
-            texto2 = sordos[1].direccion + '\n' + sordos[1].detalles_direccion
-            gps2 = str(sordos[1].gps_latitud) + ',' + str(sordos[1].gps_longitud)
-            id_sordo2 = sordos[1].codigo
-        if len(sordos) > 2:
-            texto3 = sordos[2].direccion + '\n' + sordos[2].detalles_direccion
-            gps3 = str(sordos[2].gps_latitud) + ',' + str(sordos[2].gps_longitud)
-            id_sordo3 = sordos[2].codigo
-        if len(sordos) > 3:
-            texto4 = sordos[3].direccion + '\n' + sordos[3].detalles_direccion
-            gps4 = str(sordos[3].gps_latitud) + ',' + str(sordos[3].gps_longitud)
-            id_sordo4 = sordos[3].codigo
-        if len(sordos) > 4:
-            texto5 = sordos[4].direccion + '\n' + sordos[4].detalles_direccion
-            gps5 = str(sordos[4].gps_latitud) + ',' + str(sordos[4].gps_longitud)
-            id_sordo5 = sordos[4].codigo
+        for idx, sordo in enumerate(sordos[:5]):
+            texto = sordo.direccion + '\n' + sordo.detalles_direccion
+            gps = f"{sordo.gps_latitud},{sordo.gps_longitud}"
+            datos.append((texto, gps, sordo.codigo))
+
+        texto1, gps1, id_sordo1 = datos[0] if len(datos) >= 1 else ('', '', '')
+        texto2, gps2, id_sordo2 = datos[1] if len(datos) >= 2 else ('', '', '')
+        texto3, gps3, id_sordo3 = datos[2] if len(datos) >= 3 else ('', '', '')
+        texto4, gps4, id_sordo4 = datos[3] if len(datos) >= 4 else ('', '', '')
+        texto5, gps5, id_sordo5 = datos[4] if len(datos) >= 5 else ('', '', '')
 
     # Obtener Path Completo de los archivos para qur funcione correctamente el script de generacion
     script_dir = os.path.dirname(__file__)

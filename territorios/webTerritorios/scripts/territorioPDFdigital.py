@@ -175,8 +175,6 @@ def insertar_mapa_y_botones(output_buffer, territory_name, gps1, gps2, gps3, gps
         primera_pagina.insert_link({'kind': 2, 'from': googlemaps_rectangle, 'uri': f'https://www.google.com/maps/search/?api=1&query={gps[0]},{gps[1]}'})
         primera_pagina.insert_link({'kind': 2, 'from': osmand_rectangle, 'uri': f'https://osmand.net/map?pin={gps[0]},{gps[1]}#16/{gps[0]}/{gps[1]}'})    
     
-
-    
     # Guardar el resultado en buffer en lugar de archivo
     output_final_buffer = BytesIO()
     archivo.save(output_final_buffer, garbage=4, deflate=True)
@@ -221,6 +219,13 @@ def main():
     parser.add_argument('--output', default=None, required=False, help='Ruta de salida del PDF generado (opcional)')
     
     args = parser.parse_args()
+
+    # Limpiar los GPS de paréntesis
+    args.gps1 = args.gps1.replace("(", "").replace(")", "")
+    args.gps2 = args.gps2.replace("(", "").replace(")", "")
+    args.gps3 = args.gps3.replace("(", "").replace(")", "")
+    args.gps4 = args.gps4.replace("(", "").replace(")", "")
+    args.gps5 = args.gps5.replace("(", "").replace(")", "")
 
     # Generar PDF en memoria
     pdf_bytes, filename = llenarTerritorioDigital(
