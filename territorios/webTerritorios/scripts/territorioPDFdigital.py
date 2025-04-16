@@ -1,4 +1,5 @@
 import argparse
+from io import BytesIO
 import pathlib
 import PyPDF2
 from reportlab.pdfgen import canvas
@@ -10,6 +11,8 @@ from dotenv import load_dotenv
 import requests
 from datetime import datetime
 
+# Usando la unica plantilla d 5 sordos, estas son las posiciones en que debe ir el texto
+# TODO Modificar para permitir diferentes plantillas
 posiciones_texto_digital = [[24,270],[24,219],[24,168],[24,117],[24,66]]
 
 def fecha_hoy_formato_espanol():
@@ -19,19 +22,18 @@ def fecha_hoy_formato_espanol():
         5: "mayo", 6: "junio", 7: "julio", 8: "agosto",
         9: "septiembre", 10: "octubre", 11: "noviembre", 12: "diciembre"
     }
-    # Format the date
     formatted_date = current_date.strftime("%d de ") + months[current_date.month] + current_date.strftime(" %Y")
     return formatted_date
 
 def generar_mapa(gps1, gps2, gps3, gps4, gps5):
+    # Cargar Variables de Entorno
     load_dotenv()
 
     # Iconos Marcadores https://imgur.com/a/TsOuZ5N
-    # MD con 90 pixeles de alto
-    # static_map_url = f'''https://maps.googleapis.com/maps/api/staticmap?size=640x390&scale=2&markers=icon:https://i.imgur.com/ZOWDO0O.png%7Cscale:2%7C{gps1.replace("(","").replace(")","")}&markers=icon:https://i.imgur.com/NA2dEjH.png%7Cscale:2%7C{gps2.replace("(","").replace(")","")}&markers=icon:https://i.imgur.com/2G5s3mu.png%7Cscale:2%7C{gps3.replace("(","").replace(")","")}&markers=icon:https://i.imgur.com/iosHIwU.png%7Cscale:2%7C{gps4.replace("(","").replace(")","")}&markers=icon:https://i.imgur.com/AjX1HYJ.png%7Cscale:2%7C{gps5.replace("(","").replace(")","")}&maptype=roadmap&style=feature:landscape%7Cvisibility:off&style=feature:poi%7Cvisibility:off&style=feature:poi.government%7Cvisibility:on&style=feature:poi.medical%7Cvisibility:on&style=feature:poi.park%7Cvisibility:on&style=feature:poi.place_of_worship%7Cvisibility:on&style=feature:poi.school%7Cvisibility:on&style=feature:poi.sports_complex%7Cvisibility:on&style=feature:road.arterial%7Celement:geometry.stroke%7Ccolor:0xff0000%7Cweight:1&style=feature:road.local%7Celement:geometry.stroke%7Ccolor:0x000000%7Cvisibility:on%7Cweight:0.5&key={os.environ['GOOGLE_MAPS_API_KEY']}'''
     # HD con 120 pixeles de alto
     static_map_url = "https://maps.googleapis.com/maps/api/staticmap?size=640x390&scale=2"
 
+    # Dependiendo d ela cantidad de Sordos, agregar los marcadores al mapa
     if gps1:
         static_map_url += f"&markers=icon:https://i.imgur.com/TZpeTeZ.png%7Cscale:2%7C{gps1}"
     if gps2:
@@ -42,23 +44,31 @@ def generar_mapa(gps1, gps2, gps3, gps4, gps5):
         static_map_url += f"&markers=icon:https://i.imgur.com/teU4P50.png%7Cscale:2%7C{gps4}"
     if gps5:
         static_map_url += f"&markers=icon:https://i.imgur.com/yQ9U9CF.png%7Cscale:2%7C{gps5}"
+    
     # Estilos y Token
     static_map_url += f"&maptype=roadmap&style=feature:landscape%7Cvisibility:off&style=feature:poi%7Cvisibility:off&style=feature:poi.government%7Cvisibility:on&style=feature:poi.medical%7Cvisibility:on&style=feature:poi.park%7Cvisibility:on&style=feature:poi.place_of_worship%7Cvisibility:on&style=feature:poi.school%7Cvisibility:on&style=feature:poi.sports_complex%7Cvisibility:on&style=feature:road.arterial%7Celement:geometry.stroke%7Ccolor:0xff0000%7Cweight:1&style=feature:road.local%7Celement:geometry.stroke%7Ccolor:0x000000%7Cvisibility:on%7Cweight:0.5&key={os.environ['GOOGLE_MAPS_API_KEY']}"
+    
+    # Regresar el mapa como bytes en memoria para no generar archivos temporales
     imgData = requests.get(static_map_url).content
-    with open("mapa.jpg", 'wb') as handlerImage:
-        handlerImage.write(imgData)
-
-    return "mapa.jpg"    
+    return imgData
 
 def insertar_texto(text1, text2, text3, text4, text5, template="plantillaDigitalNuevosBotones.pdf"):
-    template = PyPDF2.PdfReader(open(template, 'rb'))
+    
+    # Si el template es un string, abrir el archivo
+    if isinstance(template, str):
+        template = PyPDF2.PdfReader(open(template, 'rb'))
+    # En otro caso, se paso el la plantilla en memoria y se asume es tipo archivo
+    else:
+        template = PyPDF2.PdfReader(template)
+
     output = PyPDF2.PdfWriter()
     page = template.pages[0]
 
-    c = canvas.Canvas("overlay.pdf", pagesize=[page.mediabox.width,page.mediabox.height])
+    # Crear canvas en memoria, no en archivo temporal
+    overlay_buffer = BytesIO()
+    c = canvas.Canvas(overlay_buffer, pagesize=[page.mediabox.width,page.mediabox.height])
 
-    # Texto
-
+    # TEXTO
     # Propiedades de Letra
     c.setFont("Helvetica", 5)
     c.setFillColor(colors.black)
@@ -69,64 +79,95 @@ def insertar_texto(text1, text2, text3, text4, text5, template="plantillaDigital
     for i in range(5):
         t = c.beginText()
         t.setTextOrigin(posiciones[i][0], posiciones[i][1])
-        text = "\\n".join(wrap(texts[i], 50)) # Max caracteres/Linea
+        text = "\\n".join(wrap(texts[i], 50)) # Max caracteres/Linea, salto de linea
         lines = text.split("\\n")
         for line in lines:
             t.textLine(line)
         c.drawText(t)
     c.save()
 
-    overlay = PyPDF2.PdfReader(open("overlay.pdf", 'rb')).pages[0]
+    # Resetear el puntero del buffer para leerlo
+    overlay_buffer.seek(0)
+    overlay = PyPDF2.PdfReader(overlay_buffer).pages[0]
     page.merge_page(overlay)
 
     output.add_page(page)
 
-    with open("output.pdf", 'wb') as f:
-        output.write(f)
+    # Guardar el resultado en un buffer en memoria
+    output_buffer = BytesIO()
+    output.write(output_buffer)
+    output_buffer.seek(0)
+    
+    return output_buffer
 
-    # Cleanup
-    try:
-        os.remove("overlay.pdf")# Mover a cleanup function
-    except:
-        pass
-
-def insertar_mapa_y_botones(territory_name, gps1, gps2, gps3, gps4, gps5, id_sordo_1, id_sordo_2, id_sordo_3, id_sordo_4, id_sordo_5, id_asignacion, icon1="recursos/botonGoogle.png", icon2="recursos/botonOsmand.png", icon_reportar="recursos/botonReportar.png", icon_entregar="recursos/botonTerminar.png"):
-
-    archivo = open_fitz("output.pdf")
+def insertar_mapa_y_botones(output_buffer, territory_name, gps1, gps2, gps3, gps4, gps5, id_sordo_1, id_sordo_2, id_sordo_3, id_sordo_4, id_sordo_5, id_asignacion, icon1="recursos/botonGoogle.png", icon2="recursos/botonOsmand.png", icon_reportar="recursos/botonReportar.png", icon_entregar="recursos/botonTerminar.png"):
+    
+    # Abrir PDF desde buffer en memoria
+    archivo_buffer = BytesIO(output_buffer.getvalue())
+    archivo = open_fitz(stream=archivo_buffer, filetype="pdf")
     primera_pagina = archivo[0]
 
-    # Mapa
-    generar_mapa(gps1, gps2, gps3, gps4, gps5)
+    # Mapa en memoria e insertarlo en pdf
+    mapa_bytes = generar_mapa(gps1, gps2, gps3, gps4, gps5)
     mapa_rectangle = Rect(0,0,184,112)
-    primera_pagina.insert_image(mapa_rectangle, filename="mapa.jpg")
+    primera_pagina.insert_image(mapa_rectangle, stream=mapa_bytes)
 
     # Boton Entregar Territorio
     boton_entrega_rectangle = Rect(50,368,130,388)
-    primera_pagina.insert_image(boton_entrega_rectangle, filename=icon_entregar)
+
+    # Cargar iconos como bytes si son strings (paths)
+    if isinstance(icon_entregar, str):
+        with open(icon_entregar, 'rb') as f:
+            icon_entregar_bytes = f.read()
+    # Si no asumir es de tipo bytes
+    else:
+        icon_entregar_bytes = icon_entregar
+    
+    primera_pagina.insert_image(boton_entrega_rectangle, stream=icon_entregar_bytes)
     primera_pagina.insert_link({'kind': 2, 'from': boton_entrega_rectangle, 'uri': f'https://t.me/TerritoriosSenias_Bot?start=entregar_{id_asignacion}'})
+
+    # Cargar los demás iconos (Apps de Mapas y Reportar) como bytes si son strings (paths) o Asumir que son bytes
+    if isinstance(icon1, str):
+        with open(icon1, 'rb') as f:
+            icon1_bytes = f.read()
+    else:
+        icon1_bytes = icon1
+        
+    if isinstance(icon2, str):
+        with open(icon2, 'rb') as f:
+            icon2_bytes = f.read()
+    else:
+        icon2_bytes = icon2
+        
+    if isinstance(icon_reportar, str):
+        with open(icon_reportar, 'rb') as f:
+            icon_reportar_bytes = f.read()
+    else:
+        icon_reportar_bytes = icon_reportar
+
+
 
     # Botones dependientes del Sordo (GPS y Reportar)
     gps_list = [gps1, gps2, gps3, gps4, gps5]
     id_sordos_list = [id_sordo_1, id_sordo_2, id_sordo_3, id_sordo_4, id_sordo_5]
     for i in range(5):
-
         if not gps_list[i] and not id_sordos_list[i]:
             continue
 
-        # Botones Ubicacion Proporcion (203 x 106)
+        # Botones Ubicacion - Proporcion (203 x 106)
         diferencial_en_y_entre_sordos = 51 * i
         dif = diferencial_en_y_entre_sordos 
         googlemaps_rectangle = Rect(140,(117 + dif),178,(137 + dif))
         osmand_rectangle = Rect(140,(139 + dif),178,(159 + dif))
 
-        # Boton Reportar (61 x 61)
+        # Boton Reportar - (61 x 61)
         reportar_rectangle = Rect(10, (148 + dif), 20, (158 + dif))
         primera_pagina.insert_link({'kind': 2, 'from': reportar_rectangle, 'uri': f'https://t.me/TerritoriosSenias_Bot?start=reportar_{id_sordos_list[i]}'})
 
         # Insertar Imagenes
-        primera_pagina.insert_image(googlemaps_rectangle, filename=icon1)
-        primera_pagina.insert_image(osmand_rectangle, filename=icon2)
-        primera_pagina.insert_image(reportar_rectangle, filename=icon_reportar)
+        primera_pagina.insert_image(googlemaps_rectangle, stream=icon1_bytes)
+        primera_pagina.insert_image(osmand_rectangle, stream=icon2_bytes)
+        primera_pagina.insert_image(reportar_rectangle, stream=icon_reportar_bytes)
 
         # Coordenadas GPS
         gps = gps_list[i].split(",")
@@ -136,27 +177,23 @@ def insertar_mapa_y_botones(territory_name, gps1, gps2, gps3, gps4, gps5, id_sor
     
 
     
-    archivo.save(f"{pathlib.Path(__file__).parent.resolve()}/{territory_name} - {fecha_hoy_formato_espanol()}.pdf", garbage=4, deflate=True)
-
-    # Cleanup
-    try:
-        os.remove("output.pdf")
-        os.remove("mapa.jpg")
-    except:
-        pass
-
-    return f"{pathlib.Path(__file__).parent.resolve()}/{territory_name} - {fecha_hoy_formato_espanol()}.pdf"
+    # Guardar el resultado en buffer en lugar de archivo
+    output_final_buffer = BytesIO()
+    archivo.save(output_final_buffer, garbage=4, deflate=True)
+    output_final_buffer.seek(0)
+    
+    # Generar un nombre de archivo sugerido (no se guarda, solo se devuelve como metadata)
+    filename = f"{territory_name} - {fecha_hoy_formato_espanol()}.pdf"
+    
+    return output_final_buffer.getvalue(), filename
 
 # Funcion que englobe el proceso para importar desde App Django
 def llenarTerritorioDigital(text1, text2, text3, text4, text5, territory_name, gps1, gps2, gps3, gps4, gps5, id_sordo_1, id_sordo_2, id_sordo_3, id_sordo_4, id_sordo_5, id_asignacion, template="recursos/plantillaDigitalNuevosBotones.pdf", icon1="recursos/botonGoogle.png", icon2="recursos/botonOsmand.png", icon_reportar="recursos/botonReportar.png", icon_entregar="recursos/botonTerminar.png"):
-    insertar_texto(text1, text2, text3, text4, text5, template)
-    output = insertar_mapa_y_botones(territory_name, gps1, gps2, gps3, gps4, gps5, id_sordo_1, id_sordo_2, id_sordo_3, id_sordo_4, id_sordo_5, id_asignacion, icon1, icon2, icon_reportar, icon_entregar)
-    return output
+    output_buffer = insertar_texto(text1, text2, text3, text4, text5, template)
+    pdf_bytes, filename = insertar_mapa_y_botones(output_buffer, territory_name, gps1, gps2, gps3, gps4, gps5, id_sordo_1, id_sordo_2, id_sordo_3, id_sordo_4, id_sordo_5, id_asignacion, icon1, icon2, icon_reportar, icon_entregar)
+    return pdf_bytes, filename
 
-# Funcion que recibe datos en un JSON
-def llenarTerritorioDigitalJSON(data):
-    pass
-
+# Para mantener la compatibilidad con el script original cuando se ejecuta desde la línea de comandos
 def main():
     parser = argparse.ArgumentParser(description='Script para llenar plantillas de Territorios')
     parser.add_argument('--territory_name', '-n', required=True, help='Nombre del Territorio')
@@ -181,18 +218,26 @@ def main():
     parser.add_argument('--icon_reportar', default="recursos/botonReportar.png", help='Icono para Boton Reportar')
     parser.add_argument('--icon_entregar', default="recursos/botonTerminar.png", required=False, help='Boton Terminar')
     parser.add_argument('--template', default="recursos/plantillaDigitalNuevosBotones.pdf", required=False, help='Plantilla a Utilizar')
+    parser.add_argument('--output', default=None, required=False, help='Ruta de salida del PDF generado (opcional)')
     
-
     args = parser.parse_args()
 
-    args.gps1 = args.gps1.replace("(", "").replace(")", "")
-    args.gps2 = args.gps2.replace("(", "").replace(")", "")
-    args.gps3 = args.gps3.replace("(", "").replace(")", "")
-    args.gps4 = args.gps4.replace("(", "").replace(")", "")
-    args.gps5 = args.gps5.replace("(", "").replace(")", "")
-
-    insertar_texto(args.text1, args.text2, args.text3, args.text4, args.text5, args.template)
-    insertar_mapa_y_botones(args.territory_name, args.gps1, args.gps2, args.gps3, args.gps4, args.gps5, args.id_sordo_1, args.id_sordo_2, args.id_sordo_3, args.id_sordo_4, args.id_sordo_5, args.id_asignacion, args.icon1, args.icon2, args.icon_reportar, args.icon_entregar)
+    # Generar PDF en memoria
+    pdf_bytes, filename = llenarTerritorioDigital(
+        args.text1, args.text2, args.text3, args.text4, args.text5,
+        args.territory_name,
+        args.gps1, args.gps2, args.gps3, args.gps4, args.gps5,
+        args.id_sordo_1, args.id_sordo_2, args.id_sordo_3, args.id_sordo_4, args.id_sordo_5,
+        args.id_asignacion,
+        args.template, args.icon1, args.icon2, args.icon_reportar, args.icon_entregar
+    )
+    
+    # Si se ejecuta como script, guardar el PDF en un archivo
+    output_path = args.output if args.output else filename
+    with open(output_path, 'wb') as f:
+        f.write(pdf_bytes)
+    
+    print(f"Archivo generado correctamente: {output_path}")
 
 if __name__ == "__main__":
     main()

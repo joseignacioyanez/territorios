@@ -1,4 +1,5 @@
 
+import base64
 import json
 import os
 import threading
@@ -58,7 +59,10 @@ def preparar_y_generar_territorio(publicador_id, territorio_id, metodo_entrega, 
 
     # Check if sordos list has items
     if sordos:
-        # Assign values if sordos list has items
+        # Asignar valores en el formato que se usa en la generacion del territori
+        # Texto: Direccion y Detalles de Direccion (No nombre ni edad)
+        # GPS: "Latitud,Longitud"
+        # ID: Codigo del Sordo
         if len(sordos) > 0:
             texto1 = sordos[0].direccion + '\n' + sordos[0].detalles_direccion
             gps1 = str(sordos[0].gps_latitud) + ',' + str(sordos[0].gps_longitud)
@@ -97,11 +101,11 @@ def preparar_y_generar_territorio(publicador_id, territorio_id, metodo_entrega, 
 
     # Llenar y Enviar Path del Archivo de Territorio
     if metodo_entrega =='digital_publicador' or metodo_entrega == 'digital_asignador':
-        file_path = llenarTerritorioDigital(texto1, texto2, texto3, texto4, texto5, territorio_nombre, gps1, gps2, gps3, gps4, gps5, id_sordo1, id_sordo2, id_sordo3, id_sordo4, id_sordo5, id_asignacion, template, boton1, boton2, boton_reportar, boton_entregar)        
+        pdf_bytes, filename = llenarTerritorioDigital(texto1, texto2, texto3, texto4, texto5, territorio_nombre, gps1, gps2, gps3, gps4, gps5, id_sordo1, id_sordo2, id_sordo3, id_sordo4, id_sordo5, id_asignacion, template, boton1, boton2, boton_reportar, boton_entregar)        
     elif metodo_entrega == 'impreso_asignador':
-        file_path = llenarTerritorioImpreso(texto1, texto2, texto3, texto4, texto5, territorio_nombre, gps1, gps2, gps3, gps4, gps5, id_sordo1, id_sordo2, id_sordo3, id_sordo4, id_sordo5, template_impreso)
+        pdf_bytes, filename = llenarTerritorioImpreso(texto1, texto2, texto3, texto4, texto5, territorio_nombre, gps1, gps2, gps3, gps4, gps5, id_sordo1, id_sordo2, id_sordo3, id_sordo4, id_sordo5, template_impreso)
 
-    return file_path
+    return pdf_bytes, filename
 
 
 def calcular_edad(anio_nacimiento):
@@ -426,18 +430,30 @@ def asignar_territorio(request):
             metodo_entrega = data.get('metodo_entrega')
             solo_pdf = data.get('solo_pdf')
             
-            file_path = preparar_y_generar_territorio(publicador_id, territorio_id, metodo_entrega, solo_pdf)
+            pdf_bytes, filename = preparar_y_generar_territorio(publicador_id, territorio_id, metodo_entrega, solo_pdf)
 
             chat_id = Publicador.objects.get(pk=publicador_id).telegram_chatid
             territorio = Territorio.objects.get(pk=territorio_id)
             territorio_nombre = str(territorio.numero) + ' - ' + territorio.nombre
 
-            # Llenar y Enviar Territorio
+            # Codificar los bytes a base64 para enviarlos por JSON
+            pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
+
+            # Enviar contenido en lugar de path
             if metodo_entrega =='digital_publicador' or metodo_entrega == 'digital_asignador':
-                return JsonResponse({'chat_id': chat_id, 'file_path': file_path, 'territorio':territorio_nombre}, status=200)
+                return JsonResponse({
+                    'chat_id': chat_id, 
+                    'pdf_data': pdf_base64, 
+                    'filename': filename,
+                    'territorio': territorio_nombre
+                }, status=200)
                 
             elif metodo_entrega == 'impreso_asignador':
-                return JsonResponse({'file_path': file_path, 'territorio':territorio_nombre}, status=200)
+                return JsonResponse({
+                    'pdf_data': pdf_base64, 
+                    'filename': filename,
+                    'territorio': territorio_nombre
+                }, status=200)
 
         except Exception as e:
             print(e)
