@@ -104,8 +104,8 @@ class SordoSerializer(serializers.ModelSerializer):
 
 class AsignacionSerializer(serializers.ModelSerializer):
     publicador_nombre = serializers.CharField(source='publicador.nombre', read_only=True)
-    territorio_numero = serializers.IntegerField(source='territorio.numero', read_only=True)
-    territorio_nombre = serializers.CharField(source='territorio.nombre', read_only=True)
+    territorio_numero = serializers.IntegerField(source='territorio_numero_texto', read_only=True)
+    territorio_nombre = serializers.CharField(source='territorio_nombre_texto', read_only=True)
 
     class Meta:
         model = Asignacion

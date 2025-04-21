@@ -1,3 +1,4 @@
+import datetime
 from django.db import models
 from django.urls import reverse
 from django.contrib.auth.models import User
@@ -99,11 +100,22 @@ class Asignacion(models.Model):
     id = models.AutoField(primary_key=True)
     publicador = models.ForeignKey(Publicador, verbose_name="Publicador", blank=True, null=True, on_delete=models.SET_NULL, related_name="asignaciones_de_este_publicador")
     territorio = models.ForeignKey(Territorio, verbose_name="Territorio", blank=True, null=True, on_delete=models.SET_NULL, related_name="asignaciones_de_este_territorio")
-    fecha_asignacion = models.DateField(auto_now_add=True) #Se crea la fecha de creacion automaticamente
+    # Campos nuevos para almacenar el estado del territorio al momento de la asignación
+    territorio_numero_texto = models.IntegerField(blank=True, null=True)
+    territorio_nombre_texto = models.CharField(max_length=50, blank=True)
+    # Cambiamos auto_now_add a False y establecemos un valor por defecto
+    fecha_asignacion = models.DateField(default=datetime.date.today)
     fecha_fin = models.DateField(blank=True, null=True) 
 
     def __str__(self):
-        return f"{self.id} - {self.territorio.nombre} - {self.publicador.nombre} - {self.fecha_asignacion} - {self.fecha_fin}"
+        return f"{self.id} - {self.territorio_nombre_texto} - {self.publicador.nombre} - {self.fecha_asignacion} - {self.fecha_fin}"
+    
+    def save(self, *args, **kwargs):
+        # Si es una nueva asignación, guardar el número y nombre del territorio como texto
+        if self.territorio and (not self.territorio_numero_texto or not self.territorio_nombre_texto):
+            self.territorio_numero_texto = self.territorio.numero
+            self.territorio_nombre_texto = self.territorio.nombre
+        super().save(*args, **kwargs)
     
     class Meta:
         verbose_name = 'Asignación'
