@@ -14,7 +14,7 @@ import pandas as pd
 import requests
 
 from .models import Asignacion, Sordo, Publicador, Territorio, Congregacion, EstadoSordo
-from .serializers import CongregacionSerializer, EstadoSordoSerializer, TerritorioSerializer, PublicadorSerializer, SordoSerializer, AsignacionSerializer
+from .serializers import CongregacionSerializer, EstadoSordoSerializer, PublicadorExtendidoSerializer, TerritorioSerializer, PublicadorSerializer, SordoSerializer, AsignacionSerializer 
 from rest_framework import viewsets
 from django.contrib.auth.views import LoginView
 from django.contrib import messages
@@ -320,8 +320,9 @@ class PublicadorViewSet(viewsets.ModelViewSet):
             return Response({'error': 'No se proporcionó el chat_id en la solicitud'}, status=400)
         else:
             queryset = Publicador.objects.filter(telegram_chatid=telegram_chatid)
-            serializer = PublicadorSerializer(queryset, many=True)
+            serializer = PublicadorExtendidoSerializer(queryset, many=True)
             return Response(serializer.data)
+
         
     @action(detail=False, methods=['post'])
     def activos_de_congregacion(self, request):
