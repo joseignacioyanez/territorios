@@ -65,6 +65,7 @@ class Sordo(models.Model):
     detalles_sordo = models.CharField(max_length=400, blank=True)
     detalles_familia = models.CharField(max_length=200, blank=True)
     detalles_direccion = models.CharField(max_length=400, blank=True)
+    mejorVisitar = models.CharField(max_length=100, blank=True, verbose_name="Mejor Visitar")
     territorio = models.ForeignKey(Territorio, verbose_name="Territorio", blank=True, null=True, on_delete=models.SET_NULL, related_name="sordos")
     estado_sordo = models.ForeignKey(EstadoSordo, verbose_name="Estado del Sordo", blank=True, null=True, on_delete=models.SET_NULL, related_name="sordos_de_este_estado")
     gps_latitud = models.DecimalField(max_digits=11, decimal_places=6, blank=True, null=True)

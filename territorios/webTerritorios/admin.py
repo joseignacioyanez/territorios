@@ -53,6 +53,7 @@ class SordoAdmin(FiltroPorCongregacionMixin, ImportExportModelAdmin, LeafletPoin
 @admin.register(Territorio, site=admin.site)
 class TerritorioAdmin(FiltroPorCongregacionMixin, ImportExportModelAdmin, admin.ModelAdmin):
     list_display = ('numero', 'nombre', 'congregacion')
+    list_filter = ('congregacion', 'activo')
     
 
 class PublicadorInline(FiltroPorCongregacionMixin, admin.StackedInline):

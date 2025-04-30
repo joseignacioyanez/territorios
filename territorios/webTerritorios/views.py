@@ -66,6 +66,9 @@ def preparar_y_generar_territorio(publicador_id, territorio_id, metodo_entrega, 
         # ID: Codigo del Sordo
         for idx, sordo in enumerate(sordos[:5]):
             texto = sordo.direccion + '\n' + sordo.detalles_direccion
+            if sordo.mejorVisitar:
+                mejor_visitar_texto = f"\nMejor Visitar: {sordo.mejorVisitar}" if sordo.mejorVisitar else ""
+                texto = texto + mejor_visitar_texto
             gps = f"{sordo.gps_latitud},{sordo.gps_longitud}"
             datos.append((texto, gps, sordo.codigo))
 
