@@ -79,6 +79,18 @@ class SordoAdmin(FiltroPorCongregacionMixin, ImportExportModelAdmin, LeafletPoin
     ordering = ('codigo',)
     list_filter = ('congregacion', 'estado_sordo', VerSoloMiCongregacionFilter, 'territorio', 'publicador_estudio')
 
+    fieldsets = (
+        ('Información Básica - (Sale en Tarjetas)', {
+            'fields': ('congregacion', 'nombre', 'territorio', 'direccion', 'detalles_direccion', 'mejorVisitar', 'estado_sordo', 'publicador_estudio')
+        }),
+        ('Información Antigua - (No Sale en Tarjetas)', {
+            'fields': ('tipo_senias', 'anio_nacimiento', 'telefono', 'detalles_sordo', 'detalles_familia')
+        }),
+        ('Ubicación GPS - (Ingrese en formato Decimal [-0.123456] o use el Pin en el Mapa)', {
+            'fields': ('gps_latitud', 'gps_longitud')
+        }),
+    )
+
     # Mostrar campos como TextArea
     def get_form(self, request, obj=None, **kwargs):
         kwargs['widgets'] = {
@@ -88,6 +100,16 @@ class SordoAdmin(FiltroPorCongregacionMixin, ImportExportModelAdmin, LeafletPoin
             'direccion': forms.Textarea,
             }
         return super().get_form(request, obj, **kwargs)
+    
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        user = request.user
+        if user.username != SUPERUSUARIO_GLOBAL :
+            cong = user.publicador.congregacion
+            if db_field.name == "congregacion":
+                kwargs["queryset"] = Congregacion.objects.filter(pk=cong.pk)
+            elif db_field.name in ["territorio", "publicador_estudio"]:
+                kwargs["queryset"] = db_field.related_model.objects.filter(congregacion=cong)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 @admin.register(Territorio, site=admin.site)
 class TerritorioAdmin(FiltroPorCongregacionMixin, ImportExportModelAdmin, admin.ModelAdmin):
@@ -129,6 +151,15 @@ class UserAdmin(BaseUserAdmin):
     list_filter = ('publicador__congregacion', GrupoFilter, 'publicador__activo', 'is_staff')
     list_display = ('username', 'is_staff', 'es_superadmin', 'es_admin', 'es_asignador')
 
+    fieldsets = (
+        (None, {'fields': ('username', 'password')}),
+        ('Permisos', {'fields': ('is_active', 'is_staff', 'is_superuser')}),
+        ('Grupos y Permisos', {'fields': ('groups',)}),
+        ('Permisos Granulares - (Solo usar Grupos)', {'classes': ('expanded', 'collapse' ,'collapsed') ,'fields': ('user_permissions',)}),
+        ('Fechas Importantes - (No necesario modificar)', {'classes': ('expanded', 'collapse' ,'collapsed') ,'fields': ('last_login',)}),
+        ('Información Personal - (No necesario modificar)', {'classes': ('expanded', 'collapse' ,'collapsed') , 'fields': ('first_name', 'last_name', 'email')}),
+    )
+
     def get_queryset(self, request):
         qs = super().get_queryset(request)
 
@@ -142,6 +173,9 @@ class UserAdmin(BaseUserAdmin):
 class AsignacionAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     list_display = ('publicador', 'territorio_nombre_texto', 'fecha_asignacion', 'fecha_fin')
     list_filter = ('publicador__congregacion', 'publicador', 'territorio')
+
+    # Dont show field on form
+    exclude = ('territorio_numero_texto', 'territorio_nombre_texto')
 
     def get_queryset(self, request):
         # Llamamos directamente al get_queryset de ModelAdmin (sin pasar por el mixin)

@@ -38,6 +38,7 @@ urlpatterns = [
     path('logout/', logoutView, name='logout'),
     path('api/', include(router.urls)),
     path("webTerritorios/", include("webTerritorios.urls")),
+    path('i18n/', include('django.conf.urls.i18n')),
 ]
 
 
