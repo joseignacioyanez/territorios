@@ -20,6 +20,9 @@ from webTerritorios.views import TerritoriosLoginView, logoutView
 from rest_framework import routers
 from webTerritorios import views as webTerritorios_views
 
+from django.conf.urls.static import static
+from django.conf import settings
+
 # Router para la API
 router = routers.DefaultRouter()
 router.register(r'congregaciones', webTerritorios_views.CongregacionViewSet, basename="congregaciones")
@@ -36,3 +39,7 @@ urlpatterns = [
     path('api/', include(router.urls)),
     path("webTerritorios/", include("webTerritorios.urls")),
 ]
+
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
