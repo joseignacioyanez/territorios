@@ -131,7 +131,7 @@ class UserAdmin(BaseUserAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        
+
         # Filtrado por congregación (si no es superusuario global)
         if request.user.username != SUPERUSUARIO_GLOBAL:
             qs = qs.filter(publicador__congregacion=request.user.publicador.congregacion)
@@ -208,3 +208,8 @@ class GroupAdmin(DefaultGroupAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return request.user.username == SUPERUSUARIO_GLOBAL
+
+
+admin.site.site_header = "Administración de Territorios"
+admin.site.site_title = "Administración de Territorios"
+admin.site.index_title = "Bienvenido, seleccione una opción"
