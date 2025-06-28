@@ -112,11 +112,11 @@ def calcular_edad(anio_nacimiento):
 def enviar_territorio_telegram(chat_id, file_path, territorio):
     try:
         files = {'document': open(f'{file_path}', 'rb')}
-        resp = requests.post(f"https://api.telegram.org/bot{os.environ['TELEGRAM_BOT_TOKEN']}/sendDocument?chat_id={chat_id}", files=files)
+        resp = requests.post(f"https://api.telegram.org/bot{os.environ['TELEGRAM_BOT_TOKEN']}/sendDocument?chat_id={chat_id}", files=files, timeout=60)
 
         message = f"¡Hola! Se te ha asignado el territorio *{territorio}*. \n Por favor visita las direcciones, predica a cualquier persona que salga e intenta empezar estudios. Anota si no encuentras a nadie y regresa en diferentes horarios. Puedes avisarnos si cualquier detalle es incorrecto. \n ¡Muchas gracias por tu trabajo! 🎒🤟🏼"
         url = f"https://api.telegram.org/bot{os.environ['TELEGRAM_BOT_TOKEN']}/sendMessage?chat_id={chat_id}&text={message}"
-        resp = requests.get(url).json()
+        resp = requests.get(url, timeout=60).json()
 
         # Cleanup
         os.remove(file_path)
@@ -129,7 +129,7 @@ def enviar_territorio_telegram(chat_id, file_path, territorio):
 def enviar_mensaje_telegram(chat_id, message):
     try:
         url = f"https://api.telegram.org/bot{os.environ['TELEGRAM_BOT_TOKEN']}/sendMessage?chat_id={chat_id}&text={message}"
-        resp = requests.get(url).json()
+        resp = requests.get(url, timeout=60).json()
         return True
     
     except Exception as e:
