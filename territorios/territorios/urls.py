@@ -22,6 +22,8 @@ from webTerritorios import views as webTerritorios_views
 
 from django.conf.urls.static import static
 from django.conf import settings
+from django.views.generic import RedirectView
+
 
 # Router para la API
 router = routers.DefaultRouter()
@@ -39,6 +41,7 @@ urlpatterns = [
     path('api/', include(router.urls)),
     path("webTerritorios/", include("webTerritorios.urls")),
     path('i18n/', include('django.conf.urls.i18n')),
+    path('', RedirectView.as_view(url='/admin/', permanent=False)),
 ]
 
 

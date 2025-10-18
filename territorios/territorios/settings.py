@@ -31,7 +31,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-l^0xo*5b_*wfui)t46u+tgsdikbs1^$pv_3-y3idrvqj)^p*!t'
+SECRET_KEY = config('SECRET_KEY')
 GOOGLE_MAPS_API_KEY = config('GOOGLE_MAPS_API_KEY')
 TELEGRAM_ADMIN_CHAT_ID = config('TELEGRAM_ADMIN_CHAT_ID')
 DB_PASSWORD = config('DB_PASSWORD')
@@ -179,3 +179,11 @@ LEAFLET_POINT_CONFIG = {
 # Admin Interface
 X_FRAME_OPTIONS = "SAMEORIGIN"
 SILENCED_SYSTEM_CHECKS = ["security.W019"]
+
+# Seguridad extra
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE    = False
+SECURE_SSL_REDIRECT   = False
+SECURE_HSTS_SECONDS   = 31536000  # 1 año
+SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+SECURE_HSTS_PRELOAD  = False

@@ -295,7 +295,7 @@ class TerritorioViewSet(viewsets.ModelViewSet):
             queryset = Territorio.objects.filter(
                 ( (Q(congregacion=congregacion_id) & ~Q(asignaciones_de_este_territorio__fecha_fin__isnull=True))
                 |(Q(congregacion=congregacion_id) & Q(asignaciones_de_este_territorio__isnull=True)) )
-                & Q(activo=True)
+                & ( Q(activo=True) & ~Q(numero=0) )
                 ).annotate(count=Count('asignaciones_de_este_territorio')).order_by('numero')
             serializer = TerritorioSerializer(queryset, many=True)
             return Response(serializer.data)
