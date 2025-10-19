@@ -101,12 +101,12 @@ WSGI_APPLICATION = 'territorios.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'territorios',
-        'USER': 'postgres',
-        'PASSWORD': DB_PASSWORD,
-        'HOST': 'localhost', # BD desarrollo local
+        'NAME': os.getenv('DATABASE_NAME', 'territorios'),
+        'USER': os.getenv('DATABASE_USER', 'postgres'),
+        'PASSWORD': os.getenv('DATABASE_PASSWORD', 'pass'),
+        'HOST': os.getenv('DATABASE_HOST', 'territorios-postgres'), # BD desarrollo local
 #        'HOST': '34.75.132.211',# BD produccion
-        'PORT': '5432',
+        'PORT': os.getenv('DATABASE_PORT', '5432'),
     }
 }
 '''
