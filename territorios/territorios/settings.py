@@ -34,7 +34,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 SECRET_KEY = config('SECRET_KEY')
 GOOGLE_MAPS_API_KEY = config('GOOGLE_MAPS_API_KEY')
 TELEGRAM_ADMIN_CHAT_ID = config('TELEGRAM_ADMIN_CHAT_ID')
-DB_PASSWORD = config('DB_PASSWORD')
+DATABASE_PASSWORD = config('DATABASE_PASSWORD')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
