@@ -39,8 +39,12 @@ DATABASE_PASSWORD = config('DATABASE_PASSWORD')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
-
+ALLOWED_HOSTS = [
+    "territorios.joseignacio.com.es",
+    "localhost",
+    "127.0.0.1",
+    "territorios-django",
+]
 
 # Application definition
 
@@ -103,7 +107,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv('DATABASE_NAME', 'territorios'),
         'USER': os.getenv('DATABASE_USER', 'postgres'),
-        'PASSWORD': os.getenv('DATABASE_PASSWORD', 'pass'),
+        'PASSWORD': os.getenv('DATABASE_PASSWORD', 'jidisney03091999'),
         'HOST': os.getenv('DATABASE_HOST', 'territorios-postgres'), # BD desarrollo local
 #        'HOST': '34.75.132.211',# BD produccion
         'PORT': os.getenv('DATABASE_PORT', '5432'),
@@ -151,13 +155,16 @@ USE_TZ = True
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
 CSRF_TRUSTED_ORIGINS = [
-    'https://django.joseignacio.com.es',  # If using a custom domain with Cloudflare
-    'http://localhost:8000',
+    "https://territorios.joseignacio.com.es",
 ]
 
-#SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+#CSRF_TRUSTED_ORIGINS = [
+#    'https://territorios.joseignacio.com.es',  # If using a custom domain with Cloudflare
+#    'http://localhost:8000',
+#]
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 #CSRF_COOKIE_DOMAIN = '.joseignacio.com.es'
 
@@ -172,9 +179,6 @@ LEAFLET_POINT_CONFIG = {
     'initial_zoom': 15,
     'geocoder': True
 }
-
-
-
 
 # Admin Interface
 X_FRAME_OPTIONS = "SAMEORIGIN"

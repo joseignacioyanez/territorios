@@ -204,6 +204,9 @@ class CongregacionAdmin(admin.ModelAdmin):
         if hasattr(request.user, "publicador"):
             return qs.filter(pk=request.user.publicador.congregacion.pk)
         return qs.none()
+    
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 # Register your models here.
 admin.site.register(Sordo, SordoAdmin,config_overrides = {
